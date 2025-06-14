@@ -110,13 +110,13 @@ Cross-cutting concerns were extracted from controllers and centralized into a cl
 - **Centralized Authentication:** A single protect middleware now encapsulates all JWT verification logic. Securing an entire group of routes is as simple as one line: router.use(protect);.
 - **Declarative Validation:** Manual if statements for validation were replaced by a generic validate.ts middleware. This "gatekeeper" takes a Zod schema from the /schemas directory, ensures no invalid data ever reaches the controller, and provides powerful, self-documenting validation logic.
 
-### **3. Centralized & Validated Configuration (/config)
+### 3. Centralized & Validated Configuration (/config)
 
 Application configuration was consolidated and hardened. In env.ts, all environment variables are now loaded and validated against a Zod schema at startup. The application will fail fast with a clear error message if the configuration is invalid, preventing mysterious runtime errors.
 
 This deliberate, layered architecture is the cornerstone of a professional backend service, ensuring the application is prepared for future growth and complexity.
 
-### **4. Centralized & Validated Configuration** (/config)
+### 4. Centralized & Validated Configuration** (/config)
 
 Application configuration was consolidated and hardened.
 
