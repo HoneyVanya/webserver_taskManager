@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.DS_Store
+
+# macOS
+*.DS_Store
+
+# Logs
+*.log
+
+# OS junk
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+/src/generated/prisma
