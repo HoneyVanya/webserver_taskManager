@@ -51,7 +51,7 @@ export const errorHandler: ErrorRequestHandler = (
 
     res.status(500).json({
         error: 'Internal Server Error',
-        message: 'An unexoected error occured on the server.',
+        message: 'An unexpected error occured on the server.',
     });
     return;
 };
