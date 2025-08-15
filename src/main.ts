@@ -25,7 +25,7 @@ const swaggerOptions = {
             description:
                 'A REST API for a simple Task Manager application, documented with Swagger',
             contact: {
-                name: 'HoneyVanya', // I saw your name in the contact link :)
+                name: 'HoneyVanya',
             },
         },
         servers: [
