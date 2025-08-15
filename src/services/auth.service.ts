@@ -1,7 +1,7 @@
-import prisma from '../config/db';
+import prisma from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { env } from '../config/env';
+import { env } from '../config/env.js';
 
 export const login = async (email: string, pass: string) => {
     const user = await prisma.user.findUnique({ where: { email } });

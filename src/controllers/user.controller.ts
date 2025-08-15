@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import * as userService from '../services/user.service';
+import * as userService from '../services/user.service.js';
 
 export const getAllUsers = asyncHandler(
     async (_req: Request, res: Response) => {

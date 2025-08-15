@@ -1,4 +1,4 @@
-import prisma from '../config/db';
+import prisma from '../config/db.js';
 import { Task } from '@prisma/client';
 
 type TaskUpdateData = Partial<Pick<Task, 'title' | 'completed'>>;

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import * as taskService from '../services/task.service';
+import * as taskService from '../services/task.service.js';
 
 export const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
     const tasks = await taskService.findAllTasksForUser(req.user!.id);

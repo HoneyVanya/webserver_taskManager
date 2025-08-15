@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
-import prisma from '../config/db';
-import { env } from '../config/env';
+import prisma from '../config/db.js';
+import { env } from '../config/env.js';
 
 export const protect = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {

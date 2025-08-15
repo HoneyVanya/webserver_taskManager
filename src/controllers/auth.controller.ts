@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
-import * as authService from '../services/auth.service';
+import * as authService from '../services/auth.service.js';
 
 export const loginController = asyncHandler(
     async (req: Request, res: Response) => {
