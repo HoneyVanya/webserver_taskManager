@@ -11,6 +11,12 @@ export const loginController = asyncHandler(
         }
 
         const result = await authService.login(email, password);
+
+        if (!result) {
+            res.status(401);
+            throw new Error('Invalid credentials');
+        }
+
         res.json(result);
     }
 );
