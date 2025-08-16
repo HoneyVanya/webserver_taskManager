@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import taskRoutes from './routes/task.routes.js';
 import userRoutes from './routes/user.routes.js';
 import { env } from './config/env.js';
@@ -8,6 +9,21 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import SwaggerUi from 'swagger-ui-express';
 
 const app = express();
+
+const allowedOrigins = ['http://localhost:3000'];
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 app.use('/tasks', taskRoutes);
