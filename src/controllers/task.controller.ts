@@ -24,15 +24,6 @@ export const updateTask = asyncHandler(async (req: Request, res: Response) => {
 
 export const deleteTask = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    try {
-        await taskService.deleteTask(id, req.user!.id);
-        res.status(204).send();
-    } catch (error: unknown) {
-        const err = error as { code?: string };
-        if (err.code === 'P2025') {
-            res.status(404);
-            throw new Error('Task not found');
-        }
-        throw error;
-    }
+    await taskService.deleteTask(id, req.user!.id);
+    res.status(204).send();
 });
