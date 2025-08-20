@@ -1,5 +1,6 @@
 import { Response, Request, NextFunction, ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
+import logger from '../config/logger.js';
 
 export const errorHandler: ErrorRequestHandler = (
     err: any,
@@ -7,7 +8,7 @@ export const errorHandler: ErrorRequestHandler = (
     res: Response,
     _next: NextFunction
 ) => {
-    console.error(err);
+    logger.error(err);
 
     if (res.statusCode === 401) {
         res.status(401).json({

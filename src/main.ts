@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import pinoHttp from 'pino-http';
+import logger from './config/logger.js';
 import taskRoutes from './routes/task.routes.js';
 import userRoutes from './routes/user.routes.js';
 import { env } from './config/env.js';
@@ -9,6 +11,8 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import SwaggerUi from 'swagger-ui-express';
 
 const app = express();
+
+app.use(pinoHttp({ logger }));
 
 const allowedOrigins = ['http://localhost:3000'];
 
@@ -75,5 +79,5 @@ const swaggerSpec = swaggerJSDoc(swaggerOptions);
 app.use('/docs', SwaggerUi.serve, SwaggerUi.setup(swaggerSpec));
 
 app.listen(env.PORT, () => {
-    console.log(`Server is running on http://localhost:${env.PORT}`);
+    logger.info(`Server is running on http://localhost:${env.PORT}`);
 });
