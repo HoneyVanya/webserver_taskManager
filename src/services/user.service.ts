@@ -2,7 +2,7 @@ import prisma from '../config/db.js';
 import { User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-export type PublicUser = Omit<User, 'password'>;
+export type PublicUser = Omit<User, 'password' | 'refreshToken'>;
 
 type UserCreateData = Pick<User, 'email' | 'username' | 'password'>;
 type UserUpdateData = Partial<Omit<UserCreateData, 'password'>>;

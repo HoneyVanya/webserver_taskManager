@@ -8,10 +8,13 @@ import { env } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.routes.js';
 import swaggerJSDoc from 'swagger-jsdoc';
+import passport from 'passport';
+import './config/passport.js';
 import SwaggerUi from 'swagger-ui-express';
 
 const app = express();
 
+app.use(passport.initialize());
 app.use(pinoHttp({ logger }));
 
 const allowedOrigins = ['http://localhost:3000'];

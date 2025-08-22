@@ -1,5 +1,13 @@
 import { Router } from 'express';
-import { loginController } from '../controllers/auth.controller.js';
+import {
+    loginController,
+    refreshController,
+    logoutController,
+} from '../controllers/auth.controller.js';
+import { protect } from '../middleware/auth.middleware.js';
+import { authLimiter } from '../middleware/rateLimiter.js';
+import passport from 'passport';
+import { googleCallbackController } from '../controllers/auth.controller.js';
 
 const router = Router();
 
@@ -43,6 +51,20 @@ const router = Router();
  *       401:
  *         description: Unauthorized (Invalid credentials).
  */
-router.post('/login', loginController);
+router.post('/login', authLimiter, loginController);
+router.post('/refresh', refreshController);
+router.post('/logout', protect, logoutController);
+router.get(
+    '/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+router.get(
+    '/google/callback',
+    passport.authenticate('google', {
+        session: false,
+        failureRedirect: '/login',
+    }),
+    googleCallbackController
+);
 
 export default router;
