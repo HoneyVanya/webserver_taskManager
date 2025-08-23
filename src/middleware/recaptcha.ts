@@ -41,7 +41,7 @@ export const verifyRecaptcha = asyncHandler(
                 'Catastrofic error during Recaptcha verification.'
             );
             res.status(500);
-            throw new Error('Error verifying ReCaptcha with Google`.');
+            throw new Error('Error verifying ReCaptcha with Google.');
         }
     }
 );
