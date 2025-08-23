@@ -3,12 +3,17 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import prisma from './db.js';
 import { env } from './env.js';
 
+const googleCallbackURL =
+    process.env.NODE_ENV === 'production'
+        ? 'https://webserver-taskmanager.onrender.com/auth/google/callback'
+        : 'http://localhost:3000/auth/google/callback';
+
 passport.use(
     new GoogleStrategy(
         {
             clientID: env.GOOGLE_CLIENT_ID,
             clientSecret: env.GOOGLE_CLIENT_SECRET,
-            callbackURL: 'auth/google/callback',
+            callbackURL: googleCallbackURL,
         },
         async (accessToken, refreshToken, profile, done) => {
             console.log('--- Received Google Profile ---');
