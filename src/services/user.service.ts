@@ -24,11 +24,12 @@ export const createUser = async (data: UserCreateData): Promise<PublicUser> => {
 
     const user = await prisma.user.create({
         data: {
-            ...data,
+            username: data.username,
+            email: data.email,
             password: hashedPassword,
         },
     });
-    const { password, ...userWithoutPassword } = user;
+    const { password, refreshToken, ...userWithoutPassword } = user;
     return userWithoutPassword;
 };
 
