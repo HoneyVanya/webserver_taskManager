@@ -4,7 +4,7 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { User } from '@prisma/client';
 
-const generateTokens = (user: User) => {
+export const generateTokens = (user: User) => {
     const accessTokenOptions: SignOptions = {
         expiresIn: env.JWT_ACCESS_EXPIRATION as SignOptions['expiresIn'],
     };
@@ -25,7 +25,10 @@ const generateTokens = (user: User) => {
     return { accessToken, refreshToken };
 };
 
-const saveRefreshToken = async (userId: string, refreshToken: string) => {
+export const saveRefreshToken = async (
+    userId: string,
+    refreshToken: string
+) => {
     const hashedToken = await bcrypt.hash(refreshToken, 10);
     await prisma.user.update({
         where: { id: userId },
