@@ -10,7 +10,7 @@ export const createUserSchema = z.object({
             .min(3, 'Username must be at least 3 characters long'),
         password: z
             .string({ required_error: 'Password is required' })
-            .min(6, 'Password mist be at least 6 chatacters long'),
+            .min(6, 'Password must be at least 6 chatacters long'),
     }),
 });
 
