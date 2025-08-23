@@ -12,6 +12,7 @@ const envSchema = z.object({
     JWT_REFRESH_EXPIRATION: z.string().min(1),
     GOOGLE_CLIENT_ID: z.string().min(1),
     GOOGLE_CLIENT_SECRET: z.string().min(1),
+    RECAPTCHA_SECRET_KEY: z.string().min(1),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

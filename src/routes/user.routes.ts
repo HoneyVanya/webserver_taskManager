@@ -7,6 +7,8 @@ import {
 } from '../controllers/user.controller.js';
 import { validate } from '../middleware/validate.js';
 import { createUserSchema, updateUserSchema } from '../schemas/user.schema.js';
+import { verifyRecaptcha } from '../middleware/recaptcha.js';
+import { verify } from 'crypto';
 
 /**
  * @swagger
@@ -69,6 +71,7 @@ const router = Router();
  */
 
 router.get('/', getAllUsers);
+
 /**
  * @swagger
  * /users:
@@ -105,7 +108,8 @@ router.get('/', getAllUsers);
  *       409:
  *          description: Conflict - A user with this email alreadt exists.
  */
-router.post('/', validate(createUserSchema), createUser);
+
+router.post('/', verifyRecaptcha, validate(createUserSchema), createUser);
 /**
  * @swagger
  * /users/{id}:
