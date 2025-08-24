@@ -35,4 +35,6 @@ model Task {
 
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId String
+
+  @@index([authorId])
 }
