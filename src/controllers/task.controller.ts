@@ -1,29 +1,54 @@
+import {
+    controller,
+    httpGet,
+    httpPost,
+    httpDelete,
+    httpPut,
+} from 'inversify-express-utils';
+import { inject } from 'inversify';
+import 'reflect-metadata';
 import { Request, Response } from 'express';
-import asyncHandler from 'express-async-handler';
-import * as taskService from '../services/task.service.js';
+import { TYPES } from '../types/types.js';
+import { ITaskService } from '../services/interfaces/task.service.interface.js';
 
-export const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
-    const tasks = await taskService.findAllTasksForUser(req.user!.id);
-    res.json(tasks);
-});
+@controller('/tasks')
+export class TaskController {
+    private readonly _taskService: ITaskService;
 
-export const createTask = asyncHandler(async (req: Request, res: Response) => {
-    const newTask = await taskService.createTask(req.body.title, req.user!.id);
-    res.status(201).json(newTask);
-});
+    public constructor(@inject(TYPES.TaskService) taskService: ITaskService) {
+        this._taskService = taskService;
+    }
 
-export const updateTask = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const updatedTask = await taskService.updateTask(
-        id,
-        req.user!.id,
-        req.body
-    );
-    res.json(updatedTask);
-});
+    @httpGet('/')
+    public async getAllTasks(req: Request, res: Response) {
+        const tasks = await this._taskService.findAllTasksForUser(req.user!.id);
+        return res.json(tasks);
+    }
 
-export const deleteTask = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    await taskService.deleteTask(id, req.user!.id);
-    res.status(204).send();
-});
+    @httpPost('/')
+    public async createTask(req: Request, res: Response) {
+        const newTask = await this._taskService.createTask(
+            req.body.title,
+            req.user!.id
+        );
+        return res.status(201).json(newTask);
+    }
+
+    @httpPut('/:id')
+    public async updateTask(req: Request, res: Response) {
+        const { id } = req.params;
+        const updateTask = await this._taskService.updateTask(
+            id,
+            req.user!.id,
+            req.body
+        );
+        return res.json(updateTask);
+    }
+
+    @httpDelete('/:id')
+    public async deleteTask(req: Request, res: Response) {
+        const { id } = req.params;
+        await this._taskService.deleteTask(id, req.user!.id);
+        return res.status(204).send();
+    }
+}

@@ -1,35 +1,31 @@
 import prisma from '../config/db.js';
 import { Task } from '@prisma/client';
+import { injectable } from 'inversify';
+import 'reflect-metadata';
+import { ITaskService } from './interfaces/task.service.interface.js';
+import { TaskUpdateData } from './interfaces/task.service.interface.js';
 
-type TaskUpdateData = Partial<Pick<Task, 'title' | 'completed'>>;
-
-export const findAllTasksForUser = async (userId: string): Promise<Task[]> => {
-    return prisma.task.findMany({
-        where: { authorId: userId },
-    });
-};
-
-export const createTask = async (
-    title: string,
-    authorId: string
-): Promise<Task> => {
-    return prisma.task.create({ data: { title, authorId } });
-};
-
-export const updateTask = async (
-    taskId: string,
-    userId: string,
-    data: TaskUpdateData
-): Promise<Task> => {
-    return prisma.task.update({
-        where: { id: taskId, authorId: userId },
-        data,
-    });
-};
-
-export const deleteTask = async (
-    taskId: string,
-    userId: string
-): Promise<Task> => {
-    return prisma.task.delete({ where: { id: taskId, authorId: userId } });
-};
+@injectable()
+export class TaskService implements ITaskService {
+    public async findAllTasksForUser(userId: string): Promise<Task[]> {
+        return prisma.task.findMany({
+            where: { authorId: userId },
+        });
+    }
+    public async createTask(title: string, authorId: string): Promise<Task> {
+        return prisma.task.create({ data: { title, authorId } });
+    }
+    public async updateTask(
+        taskId: string,
+        userId: string,
+        data: TaskUpdateData
+    ): Promise<Task> {
+        return prisma.task.update({
+            where: { id: taskId, authorId: userId },
+            data,
+        });
+    }
+    public async deleteTask(userId: string, taskId: string): Promise<Task> {
+        return prisma.task.delete({ where: { id: taskId, authorId: userId } });
+    }
+}

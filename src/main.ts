@@ -1,21 +1,17 @@
+import 'reflect-metadata';
+import { InversifyExpressServer } from 'inversify-express-utils';
+import { container } from './inversify.config.js';
 import express from 'express';
 import cors from 'cors';
 import pinoHttp from 'pino-http';
 import logger from './config/logger.js';
-import taskRoutes from './routes/task.routes.js';
-import userRoutes from './routes/user.routes.js';
 import { env } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import authRoutes from './routes/auth.routes.js';
 import swaggerJSDoc from 'swagger-jsdoc';
 import passport from 'passport';
 import './config/passport.js';
 import SwaggerUi from 'swagger-ui-express';
-
-const app = express();
-
-app.use(passport.initialize());
-app.use(pinoHttp({ logger }));
+import googleRoutes from './routes/google.routes.js';
 
 const allowedOrigins = ['http://localhost:3000'];
 
@@ -31,16 +27,6 @@ const corsOptions = {
         }
     },
 };
-
-app.use(cors(corsOptions));
-
-app.use(express.json());
-
-app.use('/tasks', taskRoutes);
-app.use('/users', userRoutes);
-app.use('/auth', authRoutes);
-
-app.use(errorHandler);
 
 const swaggerOptions = {
     swaggerDefinition: {
@@ -76,10 +62,24 @@ const swaggerOptions = {
         './src/routes/user.routes.ts',
     ],
 };
-
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
-app.use('/docs', SwaggerUi.serve, SwaggerUi.setup(swaggerSpec));
+const server = new InversifyExpressServer(container);
+
+server.setConfig((app) => {
+    app.use(pinoHttp({ logger }));
+    app.use(passport.initialize());
+    app.use(cors(corsOptions));
+    app.use(express.json());
+    app.use('/docs', SwaggerUi.serve, SwaggerUi.setup(swaggerSpec));
+    app.use(googleRoutes);
+});
+
+server.setErrorConfig((app) => {
+    app.use(errorHandler);
+});
+
+const app = server.build();
 
 app.listen(env.PORT, () => {
     logger.info(`Server is running on http://localhost:${env.PORT}`);

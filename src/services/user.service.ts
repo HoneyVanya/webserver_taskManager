@@ -1,56 +1,60 @@
 import prisma from '../config/db.js';
 import { User } from '@prisma/client';
+import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
+import {
+    type CreateUserResponse,
+    type UserCreateData,
+    IUserService,
+    type PublicUser,
+    type UserUpdateData,
+} from './interfaces/user.service.interface.js';
 import bcrypt from 'bcryptjs';
-import { generateTokens, saveRefreshToken } from './auth.service.js';
+import { IAuthService } from './interfaces/auth.service.interface.js';
+import { AuthService } from './auth.service.js';
+import { TYPES } from '../types/types.js';
 
-export type PublicUser = Omit<User, 'password' | 'refreshToken'>;
+@injectable()
+export class UserService implements IUserService {
+    private readonly _authService: IAuthService;
 
-type UserCreateData = Pick<User, 'email' | 'username' | 'password'>;
-type UserUpdateData = Partial<Omit<UserCreateData, 'password'>>;
+    public constructor(@inject(TYPES.AuthService) authService: IAuthService) {
+        this._authService = authService;
+    }
 
-type CreateUserResponse = {
-    user: PublicUser;
-    accessToken: string;
-    refreshToken: string;
-};
-
-export const findAllUsers = async (): Promise<PublicUser[]> => {
-    return prisma.user.findMany({
-        select: {
-            id: true,
-            email: true,
-            username: true,
-            createdAt: true,
-            updatedAt: true,
-        },
-    });
-};
-
-export const createUser = async (
-    data: UserCreateData
-): Promise<CreateUserResponse> => {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-
-    const user = await prisma.user.create({
-        data: {
-            username: data.username,
-            email: data.email,
-            password: hashedPassword,
-        },
-    });
-    const { accessToken, refreshToken } = generateTokens(user);
-    await saveRefreshToken(user.id, refreshToken);
-    const { password, refreshToken: rt, ...userWithoutPassword } = user;
-    return { user: userWithoutPassword, accessToken, refreshToken };
-};
-
-export const updateUser = async (
-    id: string,
-    data: UserUpdateData
-): Promise<PublicUser> => {
-    return prisma.user.update({ where: { id }, data });
-};
-
-export const deleteUser = async (id: string): Promise<User> => {
-    return prisma.user.delete({ where: { id } });
-};
+    public async findAllUsers(): Promise<PublicUser[]> {
+        return prisma.user.findMany({
+            select: {
+                id: true,
+                email: true,
+                username: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+    }
+    public async createUser(data: UserCreateData): Promise<CreateUserResponse> {
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+        const user = await prisma.user.create({
+            data: {
+                username: data.username,
+                email: data.email,
+                password: hashedPassword,
+            },
+        });
+        const { accessToken, refreshToken } =
+            await this._authService.generateTokens(user);
+        await this._authService.saveRefreshToken(user.id, refreshToken);
+        const { password, refreshToken: rt, ...userWithoutPassword } = user;
+        return { user: userWithoutPassword, accessToken, refreshToken };
+    }
+    public async updateUser(
+        id: string,
+        data: UserUpdateData
+    ): Promise<PublicUser> {
+        return prisma.user.update({ where: { id }, data });
+    }
+    public async deleteUser(id: string): Promise<User> {
+        return prisma.user.delete({ where: { id } });
+    }
+}

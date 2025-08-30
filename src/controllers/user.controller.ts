@@ -1,27 +1,47 @@
+import {
+    controller,
+    httpGet,
+    httpPost,
+    httpPut,
+    httpDelete,
+} from 'inversify-express-utils';
+import { inject } from 'inversify';
+import 'reflect-metadata';
+import { TYPES } from '../types/types.js';
+import { IUserService } from '../services/interfaces/user.service.interface.js';
 import { Request, Response } from 'express';
-import asyncHandler from 'express-async-handler';
-import * as userService from '../services/user.service.js';
 
-export const getAllUsers = asyncHandler(
-    async (_req: Request, res: Response) => {
-        const users = await userService.findAllUsers();
-        res.json(users);
+@controller('/users')
+export class UserController {
+    private readonly _userService: IUserService;
+
+    public constructor(@inject(TYPES.UserService) userService: IUserService) {
+        this._userService = userService;
     }
-);
 
-export const createUser = asyncHandler(async (req: Request, res: Response) => {
-    const newUser = await userService.createUser(req.body);
-    res.status(201).json(newUser);
-});
+    @httpGet('/')
+    public async findAllUsers(req: Request, res: Response) {
+        const users = await this._userService.findAllUsers();
+        return res.json(users);
+    }
 
-export const updateUser = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const updatedUser = await userService.updateUser(id, req.body);
-    res.json(updatedUser);
-});
+    @httpPost('/')
+    public async createUser(req: Request, res: Response) {
+        const newUser = await this._userService.createUser(req.body);
+        return res.status(201).json(newUser);
+    }
 
-export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
-    await userService.deleteUser(id);
-    res.status(204).send();
-});
+    @httpPut('/:id')
+    public async updateUser(req: Request, res: Response) {
+        const { id } = req.params;
+        const updatedUser = await this._userService.updateUser(id, req.body);
+        return res.json(updatedUser);
+    }
+
+    @httpDelete('/:id')
+    public async deleteUser(req: Request, res: Response) {
+        const { id } = req.params;
+        await this._userService.deleteUser(id);
+        return res.status(204).send();
+    }
+}
