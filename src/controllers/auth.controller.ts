@@ -7,7 +7,7 @@ import { Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 
-@controller('/login')
+@controller('/auth')
 export class AuthController {
     private readonly _authService: IAuthService;
 
