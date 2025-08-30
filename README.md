@@ -1,12 +1,28 @@
 # Production-Grade Task Manager API
 
-This repository contains the source code for a robust, production-grade RESTful API for a Task Manager application. Built with **Node.js**, **Express**, and **TypeScript**, it leverages **Prisma** for ORM, is backed by a containerized **PostgreSQL** database, and features a professional, decoupled architecture powered by **InversifyJS** for Dependency Injection.
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white) ![Node.JS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) ![Prisma](https://img.shields.io/badge/Prisma-%232D3748.svg?style=for-the-badge&logo=Prisma&logoColor=white) ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 
-The project's primary purpose is to serve as a blueprint for modern backend development, showcasing a deliberate architectural evolution from a simple prototype to a highly scalable, maintainable, and testable system.
+A full-stack Task Manager application built with a professional, decoupled architecture. This repository contains the **backend service** built with Node.js and Express, powered by InversifyJS for Dependency Injection.
+
+
+## ✨ Features & Technology
+
+This project serves as a blueprint for modern full-stack development, showcasing a deliberate architectural evolution and a robust feature set.
+
+| Category         | Technology / Feature                                                                        |
+| ---------------- | ------------------------------------------------------------------------------------------- |
+| **Core**         | Node.js, Express.js, TypeScript                                                             |
+| **Architecture** | **InversifyJS** (Dependency Injection), SOLID Principles, Layered Design (Services, Controllers) |
+| **Database**     | PostgreSQL (via Docker), **Prisma** (ORM), Transactions, Indexing, Optimistic Locking       |
+| **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (OAuth 2.0 with Google), Password Hashing |
+| **Security**     | Rate Limiting (Brute-Force Protection), **Google ReCaptcha**, Password Hashing, CORS         |
+| **Logging**      | **Pino** for structured, production-grade JSON logging                                      |
+| **API Docs**     | **Swagger/OpenAPI** via a clean `swagger.yaml` definition                                   |
+| **Frontend**     | **React** (State, Effects, Components), `localStorage` for session persistence              |
 
 ---
 
-## Architectural Evolution: A Three-Phase Journey
+## 🏛️ Architectural Evolution: A Three-Phase Journey
 
 This application was not built in its final state. It underwent two significant and intentional refactoring phases to embody professional software engineering principles.
 
@@ -28,43 +44,22 @@ This phase produced a clean, scalable, and maintainable codebase.
 
 The final architectural evolution addressed the last SOLID principle: **Dependency Inversion**. The goal was to fully decouple the application's layers to maximize testability and flexibility.
 
--   **The Problem:** Controllers were still directly `import`ing and depending on concrete service implementations, creating a rigid structure (`Controller -> Service -> Database`). This made it difficult to test components in isolation.
-
--   **The Solution (`InversifyJS`):** We introduced a lightweight **Inversion of Control (IoC) container**.
-    -   **Services and Controllers** were refactored into classes decorated with `@injectable()` and `@controller()`.
-    -   **Dependencies are now "injected"** via the constructor. Controllers no longer depend on a *concrete* `TaskService`; they depend on an `ITaskService` *abstraction* (an interface).
-    -   A central **container (`inversify.config.ts`)** is now responsible for creating instances and wiring the dependencies together.
+-   **The Problem:** Controllers were still directly `import`ing and depending on concrete service implementations, creating a rigid structure (`Controller -> Service -> Database`).
+-   **The Solution (`InversifyJS`):** We introduced a lightweight **Inversion of Control (IoC) container**. Services and controllers were refactored into classes (`@injectable`, `@controller`), and dependencies are now "injected" via the constructor. A central container (`inversify.config.ts`) is now responsible for wiring the application together.
 
 This final phase transformed the application into a highly professional, decoupled system that is significantly easier to unit test and maintain.
 
 ---
 
-## Core Features & Technology
-
-| Category         | Technology / Feature                                                                        |
-| ---------------- | ------------------------------------------------------------------------------------------- |
-| **Core**         | Node.js, Express.js, TypeScript                                                             |
-| **Architecture** | **InversifyJS** (Dependency Injection), SOLID Principles, Layered Design                    |
-| **Database**     | PostgreSQL (via Docker), **Prisma** (ORM), Transactions, Indexing                           |
-| **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (OAuth 2.0 with Google), Password Hashing |
-| **Security**     | Rate Limiting (Brute-Force Protection), **Google ReCaptcha** (Bot Protection), CORS          |
-| **Logging**      | **Pino** for structured, production-grade logging                                           |
-| **Validation**   | **Zod** for schema-based, type-safe validation                                              |
-| **Dev Experience** | `tsx` for live-reloading, Docker Compose for easy setup                                     |
-| **API Docs**     | **Swagger/OpenAPI** via a clean `swagger.yaml` definition                                   |
-
----
-
-## Getting Started
-
-*(This section can remain largely the same, but ensure your `.env.example` file is up-to-date with all the new variables like `GOOGLE_CLIENT_ID`, `JWT_REFRESH_SECRET`, etc.)*
+## 🚀 Getting Started
 
 ### Prerequisites
 
 -   [Node.js](https://nodejs.org/en/) (v18 or newer)
 -   [Docker](https://www.docker.com/products/docker-desktop/) and Docker Compose
+-   A Git client
 
-### Installation & Setup
+### Installation & Local Setup
 
 1.  **Clone the repository:**
     ```bash
@@ -76,7 +71,7 @@ This final phase transformed the application into a highly professional, decoupl
     ```bash
     cp .env.example .env
     ```
-    _Fill in all the required variables in the `.env` file, including your database URL and all authentication secrets._
+    _Fill in all the required variables in the `.env` file using the table below as a guide._
 
 3.  **Install dependencies:**
     ```bash
@@ -97,4 +92,20 @@ This final phase transformed the application into a highly professional, decoupl
     ```bash
     npm run dev
     ```
-    The API is now running at `http://localhost:3000`. The interactive API documentation is available at `http://localhost:3000/docs`.
+    The API will be available at `http://localhost:3000`. The interactive API documentation is available at `http://localhost:3000/docs`.
+
+### Environment Variables
+
+The following environment variables are required for the application to run.
+
+| Variable                 | Description                                                  | Example Value                                       |
+| ------------------------ | ------------------------------------------------------------ | --------------------------------------------------- |
+| `DATABASE_URL`           | The connection string for your PostgreSQL database.          | `postgresql://myuser:mypassword@localhost:5432/taskmanager` |
+| `PORT`                   | The port the server will run on.                             | `3000`                                              |
+| `JWT_ACCESS_SECRET`      | A long, random secret for signing short-lived access tokens. | `some-very-long-and-random-secret-string`           |
+| `JWT_REFRESH_SECRET`     | A different long, random secret for signing refresh tokens.  | `another-super-secret-string-for-refresh-tokens`    |
+| `JWT_ACCESS_EXPIRATION`  | The lifespan of an access token.                             | `15m`                                               |
+| `JWT_REFRESH_EXPIRATION` | The lifespan of a refresh token.                             | `7d`                                                |
+| `GOOGLE_CLIENT_ID`       | Your OAuth 2.0 Client ID from the Google Cloud Console.      | `12345...apps.googleusercontent.com`                |
+| `GOOGLE_CLIENT_SECRET`   | Your OAuth 2.0 Client Secret from the Google Cloud Console.  | `GOCSPX-...`                                        |
+| `RECAPTCHA_SECRET_KEY`   | Your v2 Secret Key from the Google ReCaptcha Admin Console.  | `6Lcm...`                                           |
