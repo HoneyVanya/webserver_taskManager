@@ -10,8 +10,9 @@ import 'reflect-metadata';
 import { Request, Response } from 'express';
 import { TYPES } from '../types/types.js';
 import { ITaskService } from '../services/interfaces/task.service.interface.js';
+import { protect } from '../middleware/auth.middleware.js';
 
-@controller('/tasks')
+@controller('/tasks', protect)
 export class TaskController {
     private readonly _taskService: ITaskService;
 

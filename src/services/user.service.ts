@@ -11,7 +11,6 @@ import {
 } from './interfaces/user.service.interface.js';
 import bcrypt from 'bcryptjs';
 import { IAuthService } from './interfaces/auth.service.interface.js';
-import { AuthService } from './auth.service.js';
 import { TYPES } from '../types/types.js';
 
 @injectable()

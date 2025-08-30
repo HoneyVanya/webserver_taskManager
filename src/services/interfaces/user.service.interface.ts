@@ -13,7 +13,7 @@ export type CreateUserResponse = {
 
 export interface IUserService {
     findAllUsers(): Promise<PublicUser[]>;
-    createUser(data: UserCreateData): Promise<CreateUserResponse>;
+    createUser(data: any): Promise<CreateUserResponse>;
     updateUser(id: string, data: UserUpdateData): Promise<PublicUser>;
     deleteUser(id: string): Promise<User>;
 }
