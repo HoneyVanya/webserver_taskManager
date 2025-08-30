@@ -5,7 +5,7 @@ import { env } from '../config/env.js';
 import { User } from '@prisma/client';
 import { injectable } from 'inversify';
 import 'reflect-metadata';
-import { IAuthService } from './interfaces/auth.service.interface.js';
+import { IAuthService } from '../types/auth.types.js';
 
 @injectable()
 export class AuthService implements IAuthService {

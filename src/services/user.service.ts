@@ -8,9 +8,9 @@ import {
     IUserService,
     type PublicUser,
     type UserUpdateData,
-} from './interfaces/user.service.interface.js';
+} from '../types/user.types.js';
 import bcrypt from 'bcryptjs';
-import { IAuthService } from './interfaces/auth.service.interface.js';
+import { IAuthService } from '../types/auth.types.js';
 import { TYPES } from '../types/types.js';
 
 @injectable()

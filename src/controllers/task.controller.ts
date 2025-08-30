@@ -9,7 +9,7 @@ import { inject } from 'inversify';
 import 'reflect-metadata';
 import { Request, Response } from 'express';
 import { TYPES } from '../types/types.js';
-import { ITaskService } from '../services/interfaces/task.service.interface.js';
+import { ITaskService } from '../types/task.types.js';
 import { protect } from '../middleware/auth.middleware.js';
 
 @controller('/tasks', protect)

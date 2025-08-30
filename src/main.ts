@@ -10,6 +10,9 @@ import { errorHandler } from './middleware/errorHandler.js';
 import passport from 'passport';
 import './config/passport.js';
 import googleRoutes from './routes/google.routes.js';
+import swaggetUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import path from 'path';
 
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:5000'];
 
@@ -40,6 +43,9 @@ server.setErrorConfig((app) => {
 });
 
 const app = server.build();
+
+const swaggerDocument = YAML.load(path.join(process.cwd(), 'swagger.yaml'));
+app.use('/docs', swaggetUi.serve, swaggetUi.setup(swaggerDocument));
 
 app.listen(env.PORT, () => {
     logger.info(`Server is running on http://localhost:${env.PORT}`);

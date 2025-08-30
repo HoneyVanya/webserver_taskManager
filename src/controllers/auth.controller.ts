@@ -2,7 +2,7 @@ import { controller, httpPost } from 'inversify-express-utils';
 import { inject } from 'inversify';
 import 'reflect-metadata';
 import { TYPES } from '../types/types.js';
-import { IAuthService } from '../services/interfaces/auth.service.interface.js';
+import { IAuthService } from '../types/auth.types.js';
 import { Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware.js';
 import { authLimiter } from '../middleware/rateLimiter.js';

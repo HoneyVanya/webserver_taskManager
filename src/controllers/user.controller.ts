@@ -8,7 +8,7 @@ import {
 import { inject } from 'inversify';
 import 'reflect-metadata';
 import { TYPES } from '../types/types.js';
-import { IUserService } from '../services/interfaces/user.service.interface.js';
+import { IUserService } from '../types/user.types.js';
 import { Request, Response } from 'express';
 
 @controller('/users')

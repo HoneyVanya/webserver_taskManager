@@ -2,8 +2,8 @@ import prisma from '../config/db.js';
 import { Task } from '@prisma/client';
 import { injectable } from 'inversify';
 import 'reflect-metadata';
-import { ITaskService } from './interfaces/task.service.interface.js';
-import { TaskUpdateData } from './interfaces/task.service.interface.js';
+import { ITaskService } from '../types/task.types.js';
+import { TaskUpdateData } from '../types/task.types.js';
 
 @injectable()
 export class TaskService implements ITaskService {

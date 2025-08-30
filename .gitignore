@@ -17,8 +17,3 @@ Thumbs.db
 /src/generated/prisma
 
 api.http
-
-/src/locking.ts
-/src/transaction-success.ts
-/src/transaction.ts
-/src/playground.sql
