@@ -6,6 +6,9 @@ import { IAuthService } from '../types/auth.types.js';
 import { Request, Response } from 'express';
 import { protect } from '../middleware/auth.middleware.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
+import { validate } from '../middleware/validate.js';
+import { loginSchema, refreshTokenSchema } from '../schemas/auth.schema.js';
+import { ref } from 'process';
 
 @controller('/auth')
 export class AuthController {
@@ -15,16 +18,11 @@ export class AuthController {
         this._authService = authService;
     }
 
-    @httpPost('/login', authLimiter)
+    @httpPost('/login', authLimiter, validate(loginSchema))
     public async login(req: Request, res: Response) {
         const { email, password } = req.body;
-        if (!email || !password) {
-            res.status(400);
-            throw new Error('Please provide email and password');
-        }
 
         const result = await this._authService.login(email, password);
-
         if (!result) {
             res.status(401);
             throw new Error('Invalid credentials');
@@ -33,19 +31,15 @@ export class AuthController {
         return res.json(result);
     }
 
-    @httpPost('/refresh')
+    @httpPost('/refresh', validate(refreshTokenSchema))
     public async refresh(req: Request, res: Response) {
         const { refreshToken } = req.body;
-        if (!refreshToken) {
-            res.status(400);
-            throw new Error('Refresh Token is required');
-        }
+
         const newTokens = await this._authService.refreshTokens(refreshToken);
         if (!newTokens) {
             res.status(401);
             throw new Error('Invalid or expired refresh token');
         }
-
         return res.json(newTokens);
     }
 

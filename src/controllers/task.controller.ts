@@ -11,6 +11,8 @@ import { Request, Response } from 'express';
 import { TYPES } from '../types/types.js';
 import { ITaskService } from '../types/task.types.js';
 import { protect } from '../middleware/auth.middleware.js';
+import { validate } from '../middleware/validate.js';
+import { updateTaskSchema, createTaskSchema } from '../schemas/task.schema.js';
 
 @controller('/tasks', protect)
 export class TaskController {
@@ -26,7 +28,7 @@ export class TaskController {
         return res.json(tasks);
     }
 
-    @httpPost('/')
+    @httpPost('/', validate(createTaskSchema))
     public async createTask(req: Request, res: Response) {
         const newTask = await this._taskService.createTask(
             req.body.title,
@@ -35,7 +37,7 @@ export class TaskController {
         return res.status(201).json(newTask);
     }
 
-    @httpPut('/:id')
+    @httpPut('/:id', validate(updateTaskSchema))
     public async updateTask(req: Request, res: Response) {
         const { id } = req.params;
         const updateTask = await this._taskService.updateTask(
