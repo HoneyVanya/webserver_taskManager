@@ -12,9 +12,9 @@ This project serves as a blueprint for modern full-stack development, showcasing
 | Category         | Technology / Feature                                                                        |
 | ---------------- | ------------------------------------------------------------------------------------------- |
 | **Core**         | Node.js, Express.js, TypeScript                                                             |
-| **Architecture** | **InversifyJS** (Dependency Injection), SOLID Principles, Layered Design (Services, Controllers) |
-| **Database**     | PostgreSQL (via Docker), **Prisma** (ORM), Transactions, Indexing, Optimistic Locking       |
-| **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (OAuth 2.0 with Google), Password Hashing |
+| **Architecture** | **InversifyJS** (Dependency Injection), **CQRS**, SOLID Principles, Layered Design           |
+| **Database**     | PostgreSQL (via Docker), **Prrisma** (ORM), **Database Indexing** for query performance       |
+| **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (OAuth 2.0 with Google)                |
 | **Security**     | Rate Limiting (Brute-Force Protection), **Google ReCaptcha**, Password Hashing, CORS         |
 | **Logging**      | **Pino** for structured, production-grade JSON logging                                      |
 | **API Docs**     | **Swagger/OpenAPI** via a clean `swagger.yaml` definition                                   |
@@ -46,6 +46,7 @@ The final architectural evolution addressed the last SOLID principle: **Dependen
 
 -   **The Problem:** Controllers were still directly `import`ing and depending on concrete service implementations, creating a rigid structure (`Controller -> Service -> Database`).
 -   **The Solution (`InversifyJS`):** We introduced a lightweight **Inversion of Control (IoC) container**. Services and controllers were refactored into classes (`@injectable`, `@controller`), and dependencies are now "injected" via the constructor. A central container (`inversify.config.ts`) is now responsible for wiring the application together.
+-   **Further Refinement (`CQRS`):** To make the system's intent even clearer, the primary services were split based on the **Command Query Responsibility Segregation** principle. "Write" operations (Commands, e.g., `createTask`) and "Read" operations (Queries, e.g., `findAllTasks`) are now handled by separate, dedicated classes (`TaskCommands`, `TaskQueries`). This makes the system more explicit and easier to maintain and scale.
 
 This final phase transformed the application into a highly professional, decoupled system that is significantly easier to unit test and maintain.
 
