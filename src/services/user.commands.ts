@@ -5,33 +5,22 @@ import 'reflect-metadata';
 import {
     type CreateUserResponse,
     type UserCreateData,
-    IUserService,
+    IUserCommands,
     type PublicUser,
     type UserUpdateData,
-} from '../types/user.types.js';
+} from '../types/user.commands.interface.js';
 import bcrypt from 'bcryptjs';
 import { IAuthService } from '../types/auth.types.js';
 import { TYPES } from '../types/types.js';
 
 @injectable()
-export class UserService implements IUserService {
+export class userCommands implements IUserCommands {
     private readonly _authService: IAuthService;
 
     public constructor(@inject(TYPES.AuthService) authService: IAuthService) {
         this._authService = authService;
     }
 
-    public async findAllUsers(): Promise<PublicUser[]> {
-        return prisma.user.findMany({
-            select: {
-                id: true,
-                email: true,
-                username: true,
-                createdAt: true,
-                updatedAt: true,
-            },
-        });
-    }
     public async createUser(data: UserCreateData): Promise<CreateUserResponse> {
         const hashedPassword = await bcrypt.hash(data.password, 10);
         const user = await prisma.user.create({

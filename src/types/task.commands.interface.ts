@@ -2,8 +2,7 @@ import { Task } from '@prisma/client';
 
 export type TaskUpdateData = Partial<Pick<Task, 'title' | 'completed'>>;
 
-export interface ITaskService {
-    findAllTasksForUser(userId: string): Promise<Task[]>;
+export interface ITaskCommands {
     createTask(title: string, authorId: string): Promise<Task>;
     updateTask(
         taskId: string,

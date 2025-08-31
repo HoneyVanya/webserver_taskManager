@@ -1,5 +1,7 @@
 export const TYPES = {
-    TaskService: Symbol.for('TaskService'),
-    UserService: Symbol.for('UserService'),
+    TaskCommands: Symbol.for('TaskCommands'),
+    TaskQueries: Symbol.for('TaskQueries'),
+    UserCommands: Symbol.for('UserCommands'),
+    UserQueries: Symbol.for('UserQueries'),
     AuthService: Symbol.for('AuthService'),
 };

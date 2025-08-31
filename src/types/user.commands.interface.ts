@@ -11,8 +11,7 @@ export type CreateUserResponse = {
     refreshToken: string;
 };
 
-export interface IUserService {
-    findAllUsers(): Promise<PublicUser[]>;
+export interface IUserCommands {
     createUser(data: any): Promise<CreateUserResponse>;
     updateUser(id: string, data: UserUpdateData): Promise<PublicUser>;
     deleteUser(id: string): Promise<User>;

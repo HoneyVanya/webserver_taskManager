@@ -2,16 +2,13 @@ import prisma from '../config/db.js';
 import { Task } from '@prisma/client';
 import { injectable } from 'inversify';
 import 'reflect-metadata';
-import { ITaskService } from '../types/task.types.js';
-import { TaskUpdateData } from '../types/task.types.js';
+import {
+    ITaskCommands,
+    TaskUpdateData,
+} from '../types/task.commands.interface.js';
 
 @injectable()
-export class TaskService implements ITaskService {
-    public async findAllTasksForUser(userId: string): Promise<Task[]> {
-        return prisma.task.findMany({
-            where: { authorId: userId },
-        });
-    }
+export class taskCommands implements ITaskCommands {
     public async createTask(title: string, authorId: string): Promise<Task> {
         return prisma.task.create({ data: { title, authorId } });
     }

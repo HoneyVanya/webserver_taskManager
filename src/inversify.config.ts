@@ -2,12 +2,17 @@ import 'reflect-metadata';
 import { Container } from 'inversify';
 import { TYPES } from './types/types.js';
 
-import { ITaskService } from './types/task.types.js';
-import { IUserService } from './types/user.types.js';
-import { IAuthService } from './types/auth.types.js';
+import { ITaskCommands } from './types/task.commands.interface.js';
+import { ITaskQueries } from './types/task.queries.interface.js';
+import { taskCommands } from './services/task.commands.js';
+import { taskQueries } from './services/task.queries.js';
 
-import { UserService } from './services/user.service.js';
-import { TaskService } from './services/task.service.js';
+import { IUserCommands } from './types/user.commands.interface.js';
+import { IUserQueries } from './types/user.queries.interface.js';
+import { userCommands } from './services/user.commands.js';
+import { userQueries } from './services/user.queries.js';
+
+import { IAuthService } from './types/auth.types.js';
 import { AuthService } from './services/auth.service.js';
 
 import './controllers/task.controller.js';
@@ -16,8 +21,10 @@ import './controllers/auth.controller.js';
 
 const container = new Container();
 
-container.bind<ITaskService>(TYPES.TaskService).to(TaskService);
-container.bind<IUserService>(TYPES.UserService).to(UserService);
+container.bind<ITaskCommands>(TYPES.TaskCommands).to(taskCommands);
+container.bind<ITaskQueries>(TYPES.TaskQueries).to(taskQueries);
+container.bind<IUserCommands>(TYPES.UserCommands).to(userCommands);
+container.bind<IUserQueries>(TYPES.UserQueries).to(userQueries);
 container.bind<IAuthService>(TYPES.AuthService).to(AuthService);
 
 export { container };
