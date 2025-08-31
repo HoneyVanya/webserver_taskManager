@@ -8,7 +8,6 @@ import { protect } from '../middleware/auth.middleware.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 import { validate } from '../middleware/validate.js';
 import { loginSchema, refreshTokenSchema } from '../schemas/auth.schema.js';
-import { ref } from 'process';
 
 @controller('/auth')
 export class AuthController {

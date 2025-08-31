@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import passport from 'passport';
 import jwt, { SignOptions } from 'jsonwebtoken';
-import { env } from '../config/env';
+import { env } from '../config/env.js';
 
 const router = Router();
 
