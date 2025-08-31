@@ -12,6 +12,7 @@ import { IUserService } from '../types/user.types.js';
 import { Request, Response } from 'express';
 import { validate } from '../middleware/validate.js';
 import { updateUserSchema, createUserSchema } from '../schemas/user.schema.js';
+import { recapchaOrSkip } from '../middleware/recaptcha.js';
 
 @controller('/users')
 export class UserController {
@@ -27,7 +28,7 @@ export class UserController {
         return res.json(users);
     }
 
-    @httpPost('/', validate(createUserSchema))
+    @httpPost('/', recapchaOrSkip, validate(createUserSchema))
     public async createUser(req: Request, res: Response) {
         const newUser = await this._userService.createUser(req.body);
         return res.status(201).json(newUser);

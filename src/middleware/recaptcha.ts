@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import asyncHandler from 'express-async-handler';
 import axios from 'axios';
 import { env } from '../config/env.js';
@@ -45,3 +45,18 @@ export const verifyRecaptcha = asyncHandler(
         }
     }
 );
+
+export const recapchaOrSkip = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    if (process.env.NODE_ENV === 'production')
+        return verifyRecaptcha(req, res, next);
+    else {
+        logger.warn(
+            'Skipping ReCaptcha verification in non-production environment.'
+        );
+        next();
+    }
+};
