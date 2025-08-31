@@ -1,8 +1,8 @@
 import { injectable } from 'inversify';
 import 'reflect-metadata';
 import prisma from '../config/db';
-import { IUserQueries } from '../types/user.queries.interface';
-import { PublicUser } from '../types/user.commands.interface';
+import { IUserQueries } from '../types/user.queries.interface.js';
+import { PublicUser } from '../types/user.commands.interface.js';
 
 @injectable()
 export class userQueries implements IUserQueries {

@@ -1,7 +1,7 @@
 import { injectable } from 'inversify';
 import 'reflect-metadata';
 import prisma from '../config/db';
-import { ITaskQueries } from '../types/task.queries.interface';
+import { ITaskQueries } from '../types/task.queries.interface.js';
 import type { Task } from '@prisma/client';
 
 @injectable()
