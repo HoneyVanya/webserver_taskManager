@@ -51,12 +51,14 @@ export const recapchaOrSkip = (
     res: Response,
     next: NextFunction
 ) => {
-    if (process.env.NODE_ENV === 'production')
+    if (process.env.NODE_ENV === 'production') {
+        logger.info('Production environment detected. Verifying ReCaptcha...');
         return verifyRecaptcha(req, res, next);
-    else {
+    } else {
         logger.warn(
-            'Skipping ReCaptcha verification in non-production environment.'
+            `Skipping ReCaptcha in '${process.env.NODE_ENV}' environment.`
         );
-        next();
+
+        return next();
     }
 };
