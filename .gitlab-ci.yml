@@ -22,8 +22,8 @@ build_app:
 run_tests:
     stage: test
     script:
-        - echo "CRITICAL: No automated tests found. This is a placeholder stage."
-        - echo "Assuming the build was successful and proceeding."
+        - 'echo "CRITICAL: No automated tests found. This is a placeholder stage."'
+        - 'echo "Assuming the build was successful and proceeding."'
 
 tag_latest:
     stage: push
