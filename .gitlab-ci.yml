@@ -1,0 +1,44 @@
+image: docker:latest
+
+stages:
+    - build
+    - test
+    - push
+    - deploy
+
+services:
+    - docker:dind
+
+variables:
+    APP_IMAGE: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+
+build_app:
+    stage: build
+    script:
+        - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+        - docker build -t $APP_IMAGE .
+        - docker push $APP_IMAGE
+
+run_tests:
+    stage: test
+    script:
+        - echo "CRITICAL: No tests found. This stage should run Jest, Vitest, etc."
+        - echo "For now, we will assume the build was successful and proceed."
+
+tag_latest:
+    stage: push
+    script:
+        - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+        - docker pull $APP_IMAGE
+        - docker tag $APP_IMAGE $CI_REGISTRY_IMAGE/latest
+        - docker push $CI_REGISTRY_IMAGE/latest
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "main"'
+
+deploy_to_server:
+    stage: deploy
+    script:
+        - echo "Deploying version $CI_COMMIT_SHA to the production server..."
+        - echo "This is a simulation. The real deployment script will be added in the AWS lesson."
+    rules:
+        - if: '$CI_COMMIT_BRANCH == "main"'
