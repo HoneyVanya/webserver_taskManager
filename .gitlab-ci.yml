@@ -22,8 +22,8 @@ build_app:
 run_tests:
     stage: test
     script:
-        - echo "CRITICAL: No tests found. This stage should run Jest, Vitest, etc."
-        - echo "For now, we will assume the build was successful and proceed."
+        - echo "CRITICAL: No automated tests found. This is a placeholder stage."
+        - echo "Assuming the build was successful and proceeding."
 
 tag_latest:
     stage: push
