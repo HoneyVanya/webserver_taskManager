@@ -14,7 +14,12 @@ import swaggetUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
 
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:5000'];
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5000',
+    'http://localhost:5173',
+    'https://webserver-taskmanager.onrender.com',
+];
 
 const corsOptions = {
     origin: (
