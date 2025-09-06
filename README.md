@@ -27,7 +27,7 @@ This project serves as a blueprint for modern full-stack development, showcasing
 The official frontend client for this application is a modern, single-page application built with **React, TypeScript, and Vite**.
 
 -   **Live Demo:** [Link to your future deployed frontend URL]
--   **Frontend Repository:** (https://gitlab.com/HoneyVanya/taskmanager_frontend.git)
+-   **Frontend Repository:** [Task Manager Frontend](https://gitlab.com/HoneyVanya/taskmanager_frontend.git)
 
 The frontend client implements a complete user experience, including:
 -   User registration with ReCaptcha and login (including Google OAuth 2.0).
