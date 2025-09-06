@@ -3,10 +3,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import prisma from './db.js';
 import { env } from './env.js';
 
-const googleCallbackURL =
-    process.env.NODE_ENV === 'production'
-        ? 'https://webserver-taskmanager.onrender.com/auth/google/callback'
-        : 'http://localhost:3000/auth/google/callback';
+const googleCallbackURL = env.GOOGLE_CALLBACK_URL;
 
 passport.use(
     new GoogleStrategy(

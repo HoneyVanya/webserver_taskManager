@@ -7,9 +7,7 @@ const router = Router();
 
 const GoogleCallbackController = (req: Request, res: Response) => {
     if (!req.user) {
-        return res
-            .status(401)
-            .redirect('http://localhost:3000/login?error=auth_failed');
+        return res.redirect(`${env.FRONTEND_URL}/login?error=auth_failed`);
     }
     const payload = {
         id: req.user.id,
@@ -25,7 +23,7 @@ const GoogleCallbackController = (req: Request, res: Response) => {
         accessTokenOptions
     );
 
-    res.redirect(`http://localhost:3000?token=${accessToken}`);
+    res.redirect(`${env.FRONTEND_URL}?token=${accessToken}`);
 };
 
 router.get(

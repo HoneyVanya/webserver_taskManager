@@ -57,7 +57,7 @@ export class TaskController {
     @httpDelete('/:id')
     public async deleteTask(req: Request, res: Response) {
         const { id } = req.params;
-        await this._taskCommands.deleteTask(id, req.user!.id);
+        await this._taskCommands.deleteTask(req.user!.id, id);
         return res.status(204).send();
     }
 }
