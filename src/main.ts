@@ -21,19 +21,6 @@ const allowedOrigins = [
     'https://webserver-taskmanager.onrender.com',
     'https://tasks.webservertaskmanager.com',
 ];
-
-const corsOptions = {
-    origin: (
-        origin: string | undefined,
-        callback: (err: Error | null, allow?: boolean) => void
-    ) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-};
 const server = new InversifyExpressServer(container, null, {
     rootPath: '/api',
 });
@@ -41,6 +28,14 @@ const server = new InversifyExpressServer(container, null, {
 server.setConfig((app) => {
     app.use(pinoHttp({ logger }));
     app.use(passport.initialize());
+    const corsOptions = {
+        origin: [
+            'http://localhost:5173',
+            'https://tasks.webservertaskmanager.com',
+        ],
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        credentials: true, // Allow cookies to be sent
+    };
     app.use(cors(corsOptions));
     app.use(express.json());
     app.use(googleRoutes);
