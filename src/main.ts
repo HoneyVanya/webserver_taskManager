@@ -19,6 +19,7 @@ const allowedOrigins = [
     'http://localhost:5000',
     'http://localhost:5173',
     'https://webserver-taskmanager.onrender.com',
+    'https://tasks.webservertaskmanager.com',
 ];
 
 const corsOptions = {
