@@ -14,9 +14,7 @@ import swaggetUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
 
-const server = new InversifyExpressServer(container, null, {
-    rootPath: '/api',
-});
+const server = new InversifyExpressServer(container);
 
 server.setConfig((app) => {
     app.use(pinoHttp({ logger }));
