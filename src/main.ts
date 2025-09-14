@@ -33,7 +33,9 @@ const corsOptions = {
         }
     },
 };
-const server = new InversifyExpressServer(container);
+const server = new InversifyExpressServer(container, null, {
+    rootPath: '/api',
+});
 
 server.setConfig((app) => {
     app.use(pinoHttp({ logger }));
