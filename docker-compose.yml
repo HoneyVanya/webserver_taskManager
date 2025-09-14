@@ -1,32 +1,32 @@
 services:
     # Service 1: Our Application ('app')
     app:
-        # This tells Docker Compose to build an image using the Dockerfile
-        # in the current directory (.) instead of pulling a pre-made image.
         build: .
+        restart: always
         ports:
-            # We can still map port 3000 to our host machine for direct debugging if needed.
             - '3000:3000'
         env_file:
             - ./docker.env
-        # This ensures our app container won't start until the 'db' container is ready.
         depends_on:
             - db
 
     # Service 2: NGINX Reverse Proxy ('nginx')
     nginx:
-        build:
-            context: .
-            dockerfile: ./nginx/Dockerfile
+        image: nginx:stable-alpine
+        restart: always
         ports:
             - '80:80'
             - '443:443'
         volumes:
-            - /etc/letsencrypt:/etc/letsencrypt:ro
-            - /var/www/html:/var/www/html
-        depends_on:
-            - app # NGINX won't start until our 'app' container is ready.
+            - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
 
+            - /etc/letsencrypt:/etc/letsencrypt:ro
+
+            - /var/www/html:/var/www/html
+
+            - ~/frontend:/usr/share/nginx/html/frontend
+        depends_on:
+            - app
     # Service 3: The Database ('db') - mostly unchanged
     db:
         image: postgres:14.1-alpine
@@ -39,7 +39,5 @@ services:
             - '5432:5432'
         volumes:
             - db_data:/var/lib/postgresql/data
-
-# This defines the persistent volume for our database data.
 volumes:
     db_data:
