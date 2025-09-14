@@ -121,7 +121,7 @@ paths:
             tags: [Auth]
             summary: Logout the user (revokes the refresh token)
             security:
-                - bearerAuth: [] # Explicitly state that this endpoint is protected
+                - bearerAuth: []
             responses:
                 '200':
                     description: Logout successful.

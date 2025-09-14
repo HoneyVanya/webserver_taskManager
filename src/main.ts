@@ -14,13 +14,6 @@ import swaggetUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
 
-const allowedOrigins = [
-    'http://localhost:3000',
-    'http://localhost:5000',
-    'http://localhost:5173',
-    'https://webserver-taskmanager.onrender.com',
-    'https://tasks.webservertaskmanager.com',
-];
 const server = new InversifyExpressServer(container, null, {
     rootPath: '/api',
 });
@@ -34,7 +27,7 @@ server.setConfig((app) => {
             'https://tasks.webservertaskmanager.com',
         ],
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-        credentials: true, // Allow cookies to be sent
+        credentials: true,
     };
     app.use(cors(corsOptions));
     app.use(express.json());
