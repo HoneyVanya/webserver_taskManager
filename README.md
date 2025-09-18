@@ -26,7 +26,7 @@ This project serves as a blueprint for modern full-stack development, showcasing
 
 The official frontend client for this application is a modern, single-page application built with **React, TypeScript, and Vite**.
 
--   **Live Demo:** [Link to your future deployed frontend URL]
+-   **Live Demo:** [Live Website](https://tasks.webservertaskmanager.com)
 -   **Frontend Repository:** [Task Manager Frontend](https://gitlab.com/HoneyVanya/taskmanager_frontend.git)
 
 The frontend client implements a complete user experience, including:

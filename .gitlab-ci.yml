@@ -42,7 +42,7 @@ deploy_to_server:
     before_script:
         - 'apk update && apk add openssh-client'
         - 'eval $(ssh-agent -s)'
-        - 'echo "$SSH_PRIVATE_KEY" | tr -d "\r" | ssh-add -'
+        - 'ssh-add "$SSH_PRIVATE_KEY_FILE"'
         - 'mkdir -p ~/.ssh'
         - 'chmod 700 ~/.ssh'
         - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts'
@@ -55,7 +55,7 @@ deploy_to_server:
               cd ~/webservertaskManager
               echo "--- Pulling latest code from main branch ---"
               git pull
-              echo "--- Building and restarting application container ---"
+              echo "--- Building and restarting application stack ---"
               docker compose up --build -d
               echo "--- Applying database migrations ---"
               docker compose exec app npx prisma migrate deploy
