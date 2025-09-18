@@ -27,21 +27,6 @@ This project serves as a blueprint for modern full-stack development, showcasing
 
 ---
 
-## 🌐 Frontend Client
-
-The official frontend client for this application is a modern, single-page application built with **React, TypeScript, and Vite**.
-
--   **Live Demo:** [Live Website](https://tasks.webservertaskmanager.com)
--   **Frontend Repository:** [Task Manager Frontend](https://gitlab.com/HoneyVanya/taskmanager_frontend.git)
-
-The frontend client implements a complete user experience, including:
--   User registration with ReCaptcha and login (including Google OAuth 2.0).
--   Seamless session management with automated refresh token logic.
--   Full CRUD (Create, Read, Update, Delete) functionality for tasks.
--   A clean, component-based architecture with a decoupled API service layer.
-
----
-
 ## 🏛️ Architectural Evolution: A Three-Phase Journey
 
 This application was not built in its final state. It underwent two significant and intentional refactoring phases to embody professional software engineering principles.
