@@ -1,9 +1,14 @@
 # Production-Grade Task Manager API
 
-![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white) ![Node.JS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) ![Prisma](https://img.shields.io/badge/Prisma-%232D3748.svg?style=for-the-badge&logo=Prisma&logoColor=white) ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white) ![Node.JS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) ![Prisma](https://img.shields.io/badge/Prisma-%232D3748.svg?style=for-the-badge&logo=Prisma&logoColor=white) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
 
-A full-stack Task Manager application built with a professional, decoupled architecture. This repository contains the **backend service** built with Node.js and Express, powered by InversifyJS for Dependency Injection.
+This repository contains the backend service for a complete full-stack Task Manager application. It has been architected and deployed following modern, professional, production-grade standards.
 
+**[View the Live Demo](https://tasks.webservertaskmanager.com)**
+
+The official client for this API is the [**Task Manager Frontend Repository**](https://gitlab.com/HoneyVanya/taskmanager_frontend).
+
+---
 
 ## ✨ Features & Technology
 
@@ -12,13 +17,13 @@ This project serves as a blueprint for modern full-stack development, showcasing
 | Category         | Technology / Feature                                                                        |
 | ---------------- | ------------------------------------------------------------------------------------------- |
 | **Core**         | Node.js, Express.js, TypeScript                                                             |
-| **Architecture** | **InversifyJS** (Dependency Injection), **CQRS**, SOLID Principles, Layered Design           |
-| **Database**     | PostgreSQL (via Docker), **Prrisma** (ORM), **Database Indexing** for query performance       |
-| **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (OAuth 2.0 with Google)                |
-| **Security**     | Rate Limiting (Brute-Force Protection), **Google ReCaptcha**, Password Hashing, CORS         |
+| **Architecture** | **InversifyJS** (IoC), **CQRS**, SOLID Principles, Layered Design                           |
+| **Database**     | PostgreSQL, **Prisma** (ORM)                                                                |
+| **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (Google OAuth 2.0)                     |
+| **Security**     | Rate Limiting, **Google ReCaptcha**, Password Hashing, CORS                                 |
 | **Logging**      | **Pino** for structured, production-grade JSON logging                                      |
 | **API Docs**     | **Swagger/OpenAPI** via a clean `swagger.yaml` definition                                   |
-| **Frontend**     | **React** (State, Effects, Components), `localStorage` for session persistence              |
+| **DevOps**       | **Docker**, **Docker Compose**, **NGINX**, **GitLab CI/CD**, **AWS EC2**, **Let's Encrypt (TLS)** |
 
 ---
 
@@ -63,7 +68,15 @@ The final architectural evolution addressed the last SOLID principle: **Dependen
 -   **The Solution (`InversifyJS`):** We introduced a lightweight **Inversion of Control (IoC) container**. Services and controllers were refactored into classes (`@injectable`, `@controller`), and dependencies are now "injected" via the constructor. A central container (`inversify.config.ts`) is now responsible for wiring the application together.
 -   **Further Refinement (`CQRS`):** To make the system's intent even clearer, the primary services were split based on the **Command Query Responsibility Segregation** principle. "Write" operations (Commands, e.g., `createTask`) and "Read" operations (Queries, e.g., `findAllTasks`) are now handled by separate, dedicated classes (`TaskCommands`, `TaskQueries`). This makes the system more explicit and easier to maintain and scale.
 
-This final phase transformed the application into a highly professional, decoupled system that is significantly easier to unit test and maintain.
+This phase transformed the application into a highly professional, decoupled system that is significantly easier to unit test and maintain.
+
+### Phase 4: The DevOps & Cloud Deployment
+The final phase focused on building a complete DevOps lifecycle to deploy the application to a production environment on **Amazon Web Services (AWS)**.
+-   **Containerization:** The full stack (Node.js App, PostgreSQL DB, NGINX) was containerized using **Docker** and **Docker Compose**.
+-   **Reverse Proxy:** **NGINX** was configured as a reverse proxy to serve the static React frontend and proxy API requests to the Node.js backend from a single domain.
+-   **Live Deployment:** The entire stack was deployed to a live **AWS EC2** instance, with the network and firewall (Security Groups, NACLs) configured from scratch.
+-   **HTTPS/TLS:** The production domain was secured with a free, auto-renewing TLS/SSL certificate from **Let's Encrypt** via Certbot.
+-   **Continuous Deployment (CD):** A complete CI/CD pipeline was built in **GitLab CI/CD**, which automatically builds, tests, and deploys any changes pushed to the `main` branch directly to the AWS server.
 
 ---
 
