@@ -114,7 +114,7 @@ The following environment variables are required for the application to run.
 
 | Variable                 | Description                                                  | Example Value                                       |
 | ------------------------ | ------------------------------------------------------------ | --------------------------------------------------- |
-| `DATABASE_URL`           | The connection string for your PostgreSQL database.          | `postgresql://myuser:mypassword@localhost:5432/taskmanager` |
+| `DATABASE_URL`           | The connection string for your PostgreSQL database.          | `postgresql://youruser:yourpassword@localhost:5432/taskmanager` |
 | `PORT`                   | The port the server will run on.                             | `3000`                                              |
 | `JWT_ACCESS_SECRET`      | A long, random secret for signing short-lived access tokens. | `some-very-long-and-random-secret-string`           |
 | `JWT_REFRESH_SECRET`     | A different long, random secret for signing refresh tokens.  | `another-super-secret-string-for-refresh-tokens`    |
