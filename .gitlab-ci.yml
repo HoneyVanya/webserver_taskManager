@@ -40,12 +40,9 @@ deploy_to_server:
     image: alpine:latest
 
     before_script:
-        - 'apk update && apk add openssh-client'
+        - 'apk update && apk add openssh-client bash base64'
         - 'eval $(ssh-agent -s)'
-        - 'echo "$SSH_PRIVATE_KEY_FILE" > id_ed25519_gitlab'
-        - 'echo "" >> id_ed25519_gitlab'
-        - 'chmod 600 id_ed25519_gitlab'
-        - 'ssh-add id_ed25519_gitlab'
+        - 'ssh-add <(echo "$SSH_PRIVATE_KEY_FILE" | base64 -d)'
         - 'mkdir -p ~/.ssh'
         - 'chmod 700 ~/.ssh'
         - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts'
@@ -56,9 +53,9 @@ deploy_to_server:
             ssh ubuntu@3.75.211.159 << 'EOF'
               echo "--- Logging into production server ---"
               cd ~/webservertaskManager
-              echo "--- Pulling latest code from main branch ---"
+              echo "--- Pulling latest code ---"
               git pull
-              echo "--- Building and restarting application stack ---"
+              echo "--- Building and restarting application ---"
               docker compose up --build -d
               echo "--- Applying database migrations ---"
               docker compose exec app npx prisma migrate deploy
