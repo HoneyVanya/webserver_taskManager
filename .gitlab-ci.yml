@@ -42,23 +42,25 @@ deploy_to_server:
     before_script:
         - 'apk update && apk add openssh-client'
         - 'eval $(ssh-agent -s)'
-        - 'echo "$SSH_PRIVATE_KEY" | ssh-add -'
+        - 'echo "$SSH_PRIVATE_KEY" | tr -d "\r" | ssh-add -'
         - 'mkdir -p ~/.ssh'
         - 'chmod 700 ~/.ssh'
         - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts'
         - 'chmod 644 ~/.ssh/known_hosts'
 
     script:
-        - echo "Deploying to production server..."
-        - ssh ubuntu@3.75.211.159"
-          cd ~/webserver_taskmanager &&
-          git pull &&
-          echo '--- Backend code pulled ---' &&
-          docker compose up --build -d app &&
-          echo '--- Application container restarted ---' &&
-          docker compose exec app npx prisma migrate deploy &&
-          echo '--- Database migrations applied ---' &&
-          echo '--- DEPLOYMENT COMPLETE ---'"
+        - |
+            ssh ubuntu@3.75.211.159 << 'EOF'
+              echo "--- Logging into production server ---"
+              cd ~/webservertaskManager
+              echo "--- Pulling latest code from main branch ---"
+              git pull
+              echo "--- Building and restarting application container ---"
+              docker compose up --build -d
+              echo "--- Applying database migrations ---"
+              docker compose exec app npx prisma migrate deploy
+              echo "--- DEPLOYMENT COMPLETE ---"
+            EOF
 
     rules:
         - if: '$CI_COMMIT_BRANCH == "main"'
