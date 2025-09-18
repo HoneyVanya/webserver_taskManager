@@ -37,8 +37,28 @@ tag_latest:
 
 deploy_to_server:
     stage: deploy
+    image: alpine:latest
+
+    before_script:
+        - 'apk update && apk add openssh-client'
+        - 'eval $(ssh-agent -s)'
+        - 'echo "$SSH_PRIVATE_KEY" | ssh-add -'
+        - 'mkdir -p ~/.ssh'
+        - 'chmod 700 ~/.ssh'
+        - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts'
+        - 'chmod 644 ~/.ssh/known_hosts'
+
     script:
-        - echo "Deploying version $CI_COMMIT_SHA to the production server..."
-        - echo "This is a simulation. The real deployment script will be added in the AWS lesson."
+        - echo "Deploying to production server..."
+        - ssh ubuntu@3.75.211.159"
+          cd ~/webserver_taskmanager &&
+          git pull &&
+          echo '--- Backend code pulled ---' &&
+          docker compose up --build -d app &&
+          echo '--- Application container restarted ---' &&
+          docker compose exec app npx prisma migrate deploy &&
+          echo '--- Database migrations applied ---' &&
+          echo '--- DEPLOYMENT COMPLETE ---'"
+
     rules:
         - if: '$CI_COMMIT_BRANCH == "main"'
