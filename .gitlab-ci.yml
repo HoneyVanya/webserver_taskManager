@@ -40,27 +40,32 @@ deploy_to_server:
     image: alpine:latest
 
     before_script:
-        - 'apk update && apk add openssh-client bash base64'
+        - 'apk update && apk add openssh-client bash'
         - 'eval $(ssh-agent -s)'
-        - 'ssh-add <(echo "$SSH_PRIVATE_KEY_FILE" | base64 -d)'
-        - 'mkdir -p ~/.ssh'
-        - 'chmod 700 ~/.ssh'
-        - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts'
-        - 'chmod 644 ~/.ssh/known_hosts'
+        - 'echo "$SSH_PRIVATE_KEY_FILE" > id_ed25519_gitlab && chmod 600 id_ed25519_gitlab && ssh-add id_ed25519_gitlab'
+        - 'mkdir -p ~/.ssh && chmod 700 ~/.ssh'
+        - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts'
 
     script:
         - |
-            ssh ubuntu@3.75.211.159 << 'EOF'
-              echo "--- Logging into production server ---"
-              cd ~/webserver_taskmanager
-              echo "--- Pulling latest code ---"
-              git pull
-              echo "--- Building and restarting application ---"
-              docker compose up -d --remove-orphans ap
-              echo "--- Applying database migrations ---"
-              docker compose exec app npx prisma migrate deploy
-              echo "--- DEPLOYMENT COMPLETE ---"
-            EOF
+            ssh ubuntu@3.75.211.159 "
+                echo '--- Logging into production server ---'
+                cd ~/webservertaskManager
+
+                echo '--- Setting the new image variable ---'
+                export APP_IMAGE=${APP_IMAGE}
+                
+                echo '--- Pulling the new application image from GitLab Registry: ${APP_IMAGE} ---'
+                docker compose pull app
+
+                echo '--- Restarting the application with the new image ---'
+                docker compose up -d app
+                
+                echo '--- Applying any new database migrations ---'
+                docker compose exec app npx prisma migrate deploy
+                
+                echo '--- DEPLOYMENT COMPLETE ---'
+            "
 
     rules:
         - if: '$CI_COMMIT_BRANCH == "main"'
