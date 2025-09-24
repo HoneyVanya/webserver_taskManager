@@ -1,12 +1,10 @@
 services:
     # Service 1: Our Application ('app')
     app:
-        build: .
+        image: ${APP_IMAGE}
         restart: always
-        ports:
-            - '3000:3000'
         env_file:
-            - ./docker.env
+            - .env
         depends_on:
             - db
 
