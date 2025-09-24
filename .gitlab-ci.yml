@@ -3,14 +3,15 @@ image: docker:latest
 stages:
     - build
     - test
-    - push
     - deploy
 
 services:
-    - docker:dind
+    - name: docker:dind
+      alias: docker
 
 variables:
-    APP_IMAGE: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
+    APP_IMAGE: $CI_REGISTRY_IMAGE/app:$CI_COMMIT_SHA
+    DEPLOY_IMAGE: $CI_REGISTRY_IMAGE/deploy:latest
 
 build_app:
     stage: build
@@ -19,28 +20,23 @@ build_app:
         - docker build -t $APP_IMAGE .
         - docker push $APP_IMAGE
 
+build_deploy_image:
+    stage: build
+    script:
+        - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+        - docker build -t $DEPLOY_IMAGE -f deploy/Dockerfile .
+        - docker push $DEPLOY_IMAGE
+
 run_tests:
     stage: test
     script:
         - 'echo "CRITICAL: No automated tests found. This is a placeholder stage."'
-        - 'echo "Assuming the build was successful and proceeding."'
-
-tag_latest:
-    stage: push
-    script:
-        - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-        - docker pull $APP_IMAGE
-        - docker tag $APP_IMAGE $CI_REGISTRY_IMAGE/latest
-        - docker push $CI_REGISTRY_IMAGE/latest
-    rules:
-        - if: '$CI_COMMIT_BRANCH == "main"'
 
 deploy_to_server:
     stage: deploy
-    image: alpine:latest
+    image: $DEPLOY_IMAGE
 
     before_script:
-        - 'apk update && apk add openssh-client bash'
         - 'eval $(ssh-agent -s)'
         - 'echo "$SSH_PRIVATE_KEY_FILE" > id_ed25519_gitlab && chmod 600 id_ed25519_gitlab && ssh-add id_ed25519_gitlab'
         - 'mkdir -p ~/.ssh && chmod 700 ~/.ssh'
@@ -58,10 +54,12 @@ deploy_to_server:
                 echo '--- Pulling the new application image from GitLab Registry: ${APP_IMAGE} ---'
                 docker compose pull app
 
-                echo '--- Restarting the application with the new image ---'
-                docker compose up -d app
+                echo '--- Bringing down the old stack and starting the new one ---'
+                docker compose up -d
                 
                 echo '--- Applying any new database migrations ---'
+                # We add a small sleep to ensure the app container is ready.
+                sleep 5 
                 docker compose exec app npx prisma migrate deploy
                 
                 echo '--- DEPLOYMENT COMPLETE ---'
