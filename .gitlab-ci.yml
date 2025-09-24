@@ -45,24 +45,24 @@ deploy_to_server:
     script:
         - |
             ssh ubuntu@3.75.211.159 "
-                echo '--- Logging into production server ---'
-                cd ~/webservertaskManager
+              echo '--- Logging into production server ---'
+              cd ~/webservertaskManager
 
-                echo '--- Setting the new image variable ---'
-                export APP_IMAGE=${APP_IMAGE}
-                
-                echo '--- Pulling the new application image from GitLab Registry: ${APP_IMAGE} ---'
-                docker compose pull app
+              echo '--- Setting the new image variable ---'
+              export APP_IMAGE=${APP_IMAGE}
+              
+              echo '--- Pulling the new application image from GitLab Registry: ${APP_IMAGE} ---'
+              docker compose pull app
 
-                echo '--- Bringing down the old stack and starting the new one ---'
-                docker compose up -d
-                
-                echo '--- Applying any new database migrations ---'
-                # We add a small sleep to ensure the app container is ready.
-                sleep 5 
-                docker compose exec app npx prisma migrate deploy
-                
-                echo '--- DEPLOYMENT COMPLETE ---'
+              echo '--- Bringing down the old stack and starting the new one ---'
+              docker compose up -d
+              
+              echo '--- Applying any new database migrations ---'
+              # We add a small sleep to ensure the app container is ready.
+              sleep 5 
+              docker compose exec app npx prisma migrate deploy
+              
+              echo '--- DEPLOYMENT COMPLETE ---'
             "
 
     rules:
