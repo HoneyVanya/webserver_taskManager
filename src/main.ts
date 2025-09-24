@@ -38,8 +38,11 @@ server.setErrorConfig((app) => {
 
 const app = server.build();
 
-const swaggerDocument = YAML.load(path.join(process.cwd(), 'swagger.yaml'));
-app.use('/docs', swaggetUi.serve, swaggetUi.setup(swaggerDocument));
+if (process.env.NODE_ENV !== 'production') {
+    const swaggerDocument = YAML.load(path.join(process.cwd(), 'swagger.yaml'));
+    app.use('/docs', swaggetUi.serve, swaggetUi.setup(swaggerDocument));
+    logger.info('Swagger docs are enabled at /docs');
+}
 
 app.listen(env.PORT, () => {
     logger.info(`Server is running on http://localhost:${env.PORT}`);
