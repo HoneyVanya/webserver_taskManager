@@ -4,7 +4,6 @@ stages:
     - deploy
 
 variables:
-    APP_IMAGE: $CI_REGISTRY_IMAGE/app:$CI_COMMIT_SHA
     DEPLOY_IMAGE: $CI_REGISTRY_IMAGE/deploy:latest
 
 build:
@@ -15,21 +14,13 @@ build:
           alias: docker
     script:
         - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-        - docker build -t $APP_IMAGE .
-        - docker push $APP_IMAGE
         - docker build -t $DEPLOY_IMAGE -f deploy/Dockerfile .
         - docker push $DEPLOY_IMAGE
 
 test:
     stage: test
-    image: docker:latest
-    services:
-        - name: docker:dind
-          alias: docker
     script:
-        - echo "Logging in to pull application image for testing..."
-        - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-        - docker pull $APP_IMAGE
+        - echo "CRITICAL No automated tests. This is a placeholder."
 
 deploy:
     stage: deploy
@@ -48,17 +39,17 @@ deploy:
               echo "--- Logging into production server ---"
               cd ~/webservertaskManager
               
-              echo "--- Pulling latest orchestration files ---"
+              echo "--- Pulling latest orchestration and source files ---"
               git pull
-
-              echo "--- Forcing a recreation of the application stack with the latest images ---"
+              
+              echo "--- Building and deploying application with latest code ---"
+              # This is now the single source of truth for the deployment.
               docker compose up --build -d --force-recreate
-
-              echo "--- Applying database migrations ---"
-              # We add a sleep to ensure the app container has time to fully start.
+              
+              echo "--- Applying any new database migrations ---"
               sleep 10
               docker compose exec app npx prisma migrate deploy
-
+              
               echo "--- DEPLOYMENT COMPLETE ---"
             EOF
 
