@@ -17,6 +17,9 @@ import path from 'path';
 const server = new InversifyExpressServer(container);
 
 server.setConfig((app) => {
+    app.get('/healthz', (_req, res) => {
+        res.status(200).send('OK');
+    });
     app.use(pinoHttp({ logger }));
     app.use(passport.initialize());
     const corsOptions = {
