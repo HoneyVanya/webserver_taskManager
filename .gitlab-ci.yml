@@ -12,16 +12,16 @@ deploy_to_prod:
 
     script:
         - |
-            ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" ubuntu@3.75.211.159 << 'EOF'
+            ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" ubuntu@3.75.211.159 << "EOF"
               set -e
               
               echo "--- [DEPLOY] Preparing server environment ---"
-              if [ ! -d "webservertaskmanager" ]; then
+              if [ ! -d "webservertaskManager" ]; then
                 echo "Cloning repository..."
-                git clone "${GIT_PULL_URL}" webservertaskmanager
+                git clone "${GIT_PULL_URL}" webservertaskManager
               fi
               
-              cd webservertaskmanager
+              cd webservertaskManager
               
               echo "--- [DEPLOY] Pulling latest code and configuration ---"
               git remote set-url origin "${GIT_PULL_URL}"
@@ -31,7 +31,7 @@ deploy_to_prod:
               docker compose up --build -d --force-recreate
               
               echo "--- [DEPLOY] Waiting for application to become healthy ---"
-              until [ "$(docker inspect -f {{.State.Health.Status}} webservertaskmanager-app-1)" = "healthy" ]; do
+              until [ "$(docker inspect -f {{.State.Health.Status}} webservertaskManager-app-1)" = "healthy" ]; do
                   echo "Waiting for app container to be healthy...";
                   sleep 2;
               done
@@ -40,7 +40,7 @@ deploy_to_prod:
               docker compose exec app npx prisma migrate deploy
               
               echo "--- [DEPLOY] DEPLOYMENT COMPLETE ---"
-            EOF
+            "EOF"
 
     rules:
         - if: '$CI_COMMIT_BRANCH == "main"'
