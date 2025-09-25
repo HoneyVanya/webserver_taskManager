@@ -30,6 +30,7 @@ export class UserController {
 
     @httpGet('/')
     public async findAllUsers(req: Request, res: Response) {
+        console.log('--- V2 of findAllUsers was called! ---');
         const users = await this._userQueries.findAllUsers();
         return res.json(users);
     }
