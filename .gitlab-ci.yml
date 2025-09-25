@@ -11,6 +11,7 @@ services:
 
 variables:
     APP_IMAGE: $CI_REGISTRY_IMAGE/app:$CI_COMMIT_SHA
+    DEPLOY_IMAGE: $CI_REGISTRY_IMAGE/deploy:latest
 
 build_app:
     stage: build
