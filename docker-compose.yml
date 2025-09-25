@@ -1,7 +1,7 @@
 services:
     # Service 1: Our Application ('app')
     app:
-        image: ${APP_IMAGE}
+        build: .
         restart: always
         env_file:
             - .env

@@ -47,17 +47,16 @@ deploy:
             ssh ubuntu@3.75.211.159 << 'EOF'
               echo "--- Logging into production server ---"
               cd ~/webservertaskManager
-
+              
               echo "--- Pulling latest orchestration files ---"
               git pull
 
-              echo "--- Deploying new application version: ${CI_COMMIT_SHA} ---"
-              # We pass the immutable image tag from the pipeline directly to docker compose.
-              # This forces the update.
-              APP_IMAGE=$CI_REGISTRY_IMAGE/app:$CI_COMMIT_SHA docker compose up -d
+              echo "--- Forcing a recreation of the application stack with the latest images ---"
+              docker compose up --build -d --force-recreate
 
               echo "--- Applying database migrations ---"
-              sleep 5
+              # We add a sleep to ensure the app container has time to fully start.
+              sleep 10
               docker compose exec app npx prisma migrate deploy
 
               echo "--- DEPLOYMENT COMPLETE ---"
