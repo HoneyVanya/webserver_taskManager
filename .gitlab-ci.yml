@@ -13,8 +13,11 @@ deploy_to_prod:
     script:
         - |
             ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" ubuntu@3.75.211.159 << 'EOF'
+
+            set -e
+
               echo "--- [DEPLOY] Logging into production server ---"
-              cd ~/webservertaskManager
+              cd ~/webserver_taskmanager
               
               echo "--- [DEPLOY] Fixing any potential file ownership issues ---"
               sudo chown -R ubuntu:ubuntu .
