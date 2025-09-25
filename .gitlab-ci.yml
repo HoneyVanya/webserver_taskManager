@@ -13,7 +13,7 @@ deploy_to_prod:
     script:
         - >
             ssh -o "StrictHostKeyChecking=no" ubuntu@3.75.211.159
-            "cd ~/webservertaskManager &&
+            "cd ~/webserver_taskmanager &&
             sudo chown -R ubuntu:ubuntu . &&
             git pull &&
             docker compose up --build -d --force-recreate &&
