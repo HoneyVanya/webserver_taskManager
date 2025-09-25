@@ -1,13 +1,7 @@
-image: docker:latest
-
 stages:
     - build
     - test
     - deploy
-
-services:
-    - name: docker:dind
-      alias: docker
 
 variables:
     APP_IMAGE: $CI_REGISTRY_IMAGE/app:$CI_COMMIT_SHA
@@ -15,6 +9,10 @@ variables:
 
 build:
     stage: build
+    image: docker:latest
+    services:
+        - name: docker:dind
+          alias: docker
     script:
         - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
         - docker build -t $APP_IMAGE .
@@ -24,24 +22,46 @@ build:
 
 test:
     stage: test
+    image: docker:latest
+    services:
+        - name: docker:dind
+          alias: docker
     script:
-        - 'echo "CRITICAL: No automated tests found. Placeholder."'
+        - echo "Logging in to pull application image for testing..."
+        - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+        - docker pull $APP_IMAGE
 
 deploy:
     stage: deploy
     image: $DEPLOY_IMAGE
 
-before_script:
-    - 'eval $(ssh-agent -s)'
-    - 'echo "$SSH_PRIVATE_KEY_FILE" | base64 -d | ssh-add -'
-    - 'mkdir -p ~/.ssh && chmod 700 ~/.ssh'
-    - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts'
-    - 'chmod 644 ~/.ssh/known_hosts'
+    before_script:
+        - 'eval $(ssh-agent -s)'
+        - 'echo "$SSH_PRIVATE_KEY_FILE" | base64 -d | ssh-add -'
+        - 'mkdir -p ~/.ssh && chmod 700 ~/.ssh'
+        - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts'
+        - 'chmod 644 ~/.ssh/known_hosts'
 
-tag_latest:
-    stage: push
     script:
         - |
-            ssh ubuntu@3.75.211.159 "APP_IMAGE=$APP_IMAGE docker compose up -d"
+            ssh ubuntu@3.75.211.159 << 'EOF'
+              echo "--- Logging into production server ---"
+              cd ~/webservertaskManager
+
+              echo "--- Pulling latest orchestration files ---"
+              git pull
+
+              echo "--- Deploying new application version: ${CI_COMMIT_SHA} ---"
+              # We pass the immutable image tag from the pipeline directly to docker compose.
+              # This forces the update.
+              APP_IMAGE=$CI_REGISTRY_IMAGE/app:$CI_COMMIT_SHA docker compose up -d
+
+              echo "--- Applying database migrations ---"
+              sleep 5
+              docker compose exec app npx prisma migrate deploy
+
+              echo "--- DEPLOYMENT COMPLETE ---"
+            EOF
+
     rules:
         - if: '$CI_COMMIT_BRANCH == "main"'
