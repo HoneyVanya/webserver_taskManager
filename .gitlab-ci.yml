@@ -9,30 +9,17 @@ deploy_to_prod:
         - 'apk update && apk add openssh-client'
         - 'eval $(ssh-agent -s)'
         - 'echo "$SSH_PRIVATE_KEY_FILE" | base64 -d | ssh-add -'
-        - 'mkdir -p ~/.ssh && chmod 700 ~/.ssh'
-        - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts'
 
     script:
-        - |
-            ssh ubuntu@3.75.211.159 << 'EOF'
-              echo "--- [DEPLOY] Logging into production server ---"
-              cd ~/webservertaskManager
-              
-              echo "--- [DEPLOY] Fixing any potential ownership issues ---"
-              sudo chown -R ubuntu:ubuntu .
-              
-              echo "--- [DEPLOY] Pulling latest code and configuration ---"
-              git pull
-              
-              echo "--- [DEPLOY] Building and restarting application stack ---"
-              docker compose up --build -d --force-recreate
-              
-              echo "--- [DEPLOY] Applying database migrations ---"
-              sleep 10 
-              docker compose exec app npx prisma migrate deploy
-              
-              echo "--- [DEPLOY] DEPLOYMENT COMPLETE ---"
-            EOF
+        - >
+            ssh -o "StrictHostKeyChecking=no" ubuntu@3.75.211.159
+            "cd ~/webservertaskManager &&
+            sudo chown -R ubuntu:ubuntu . &&
+            git pull &&
+            docker compose up --build -d --force-recreate &&
+            sleep 10 &&
+            docker compose exec app npx prisma migrate deploy &&
+            echo '--- DEPLOYMENT COMPLETE ---'"
 
     rules:
         - if: '$CI_COMMIT_BRANCH == "main"'
