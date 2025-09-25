@@ -11,15 +11,31 @@ deploy_to_prod:
         - 'echo "$SSH_PRIVATE_KEY_FILE" | base64 -d | ssh-add -'
 
     script:
-        - >
-            ssh -o "StrictHostKeyChecking=no" ubuntu@3.75.211.159
-            "cd ~/webserver_taskmanager &&
-            sudo chown -R ubuntu:ubuntu . &&
-            git pull &&
-            docker compose up --build -d --force-recreate &&
-            sleep 10 &&
-            docker compose exec app npx prisma migrate deploy &&
-            echo '--- DEPLOYMENT COMPLETE ---'"
+        - |
+            ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" ubuntu@3.75.211.159 << 'EOF'
+              echo "--- [DEPLOY] Logging into production server ---"
+              cd ~/webservertaskManager
+              
+              echo "--- [DEPLOY] Fixing any potential file ownership issues ---"
+              sudo chown -R ubuntu:ubuntu .
+              
+              echo "--- [DEPLOY] Pulling latest code and configuration ---"
+              git pull
+              
+              echo "--- [DEPLOY] Building and restarting application stack ---"
+              docker compose up --build -d --force-recreate
+              
+              echo "--- [DEPLOY] Waiting for application to become healthy ---"
+              until [ "$(docker inspect -f {{.State.Health.Status}} webservertaskManager-app-1)" = "healthy" ]; do
+                  echo "Waiting for app container to be healthy...";
+                  sleep 2;
+              done
+              
+              echo "--- [DEPLOY] Application is healthy. Applying database migrations. ---"
+              docker compose exec app npx prisma migrate deploy
+              
+              echo "--- [DEPLOY] DEPLOYMENT COMPLETE ---"
+            EOF
 
     rules:
         - if: '$CI_COMMIT_BRANCH == "main"'

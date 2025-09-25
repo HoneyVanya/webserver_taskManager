@@ -14,6 +14,8 @@ RUN npm run build
 # --- STAGE 2: The Final "Runner" ---
 FROM node:18-alpine
 
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 COPY --from=builder /app/package*.json ./

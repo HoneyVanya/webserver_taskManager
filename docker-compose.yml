@@ -3,10 +3,16 @@ services:
     app:
         build: .
         restart: always
-        env_file:
-            - .env
+        env_file: [".env"]
         depends_on:
-            - db
+            db:
+                condition: service_started
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:3000/healthz"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
 
     # Service 2: NGINX Reverse Proxy ('nginx')
     nginx:
@@ -21,7 +27,8 @@ services:
             - /var/www/html:/var/www/html
             - ~/frontend:/usr/share/nginx/html/frontend
         depends_on:
-            - app
+            app:
+                condition: service_healthy
     # Service 3: The Database ('db') - mostly unchanged
     db:
         image: postgres:14.1-alpine
@@ -31,9 +38,9 @@ services:
             - POSTGRES_PASSWORD=mypassword
             - POSTGRES_DB=taskmanager
         ports:
-            - '5432:5432'
+            - "5432:5432"
         volumes:
             - db_data:/var/lib/postgresql/data
 
 volumes:
-  db_data:
+    db_data:
