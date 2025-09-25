@@ -6,7 +6,7 @@ deploy_to_prod:
     image: alpine:latest
 
     before_script:
-        - apk add --no-cache openssh-client
+        - apk add --no-cache openssh-client git
         - eval $(ssh-agent -s)
         - echo "$SSH_PRIVATE_KEY_FILE" | base64 -d | ssh-add -
 
@@ -16,14 +16,15 @@ deploy_to_prod:
               set -e
               
               echo "--- [DEPLOY] Preparing server environment ---"
-              if [ ! -d "webservertaskManager" ]; then
+              if [ ! -d "webservertaskmanager" ]; then
                 echo "Cloning repository..."
-                git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/HoneyVanya/webservertaskmanager.git
+                git clone "${GIT_PULL_URL}" webservertaskmanager
               fi
               
-              cd webservertaskManager
+              cd webservertaskmanager
               
               echo "--- [DEPLOY] Pulling latest code and configuration ---"
+              git remote set-url origin "${GIT_PULL_URL}"
               git pull
               
               echo "--- [DEPLOY] Building and restarting application stack ---"
