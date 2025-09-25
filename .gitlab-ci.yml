@@ -1,56 +1,37 @@
 stages:
-    - build
-    - test
     - deploy
 
-variables:
-    DEPLOY_IMAGE: $CI_REGISTRY_IMAGE/deploy:latest
-
-build:
-    stage: build
-    image: docker:latest
-    services:
-        - name: docker:dind
-          alias: docker
-    script:
-        - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-        - docker build -t $DEPLOY_IMAGE -f deploy/Dockerfile .
-        - docker push $DEPLOY_IMAGE
-
-test:
-    stage: test
-    script:
-        - echo "CRITICAL No automated tests. This is a placeholder."
-
-deploy:
+deploy_to_prod:
     stage: deploy
-    image: $DEPLOY_IMAGE
+    image: alpine:latest
 
     before_script:
+        - 'apk update && apk add openssh-client'
         - 'eval $(ssh-agent -s)'
         - 'echo "$SSH_PRIVATE_KEY_FILE" | base64 -d | ssh-add -'
         - 'mkdir -p ~/.ssh && chmod 700 ~/.ssh'
-        - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts'
-        - 'chmod 644 ~/.ssh/known_hosts'
+        - 'ssh-keyscan 3.75.211.159 >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts'
 
     script:
         - |
             ssh ubuntu@3.75.211.159 << 'EOF'
-              echo "--- Logging into production server ---"
+              echo "--- [DEPLOY] Logging into production server ---"
               cd ~/webservertaskManager
               
-              echo "--- Pulling latest orchestration and source files ---"
+              echo "--- [DEPLOY] Fixing any potential ownership issues ---"
+              sudo chown -R ubuntu:ubuntu .
+              
+              echo "--- [DEPLOY] Pulling latest code and configuration ---"
               git pull
               
-              echo "--- Building and deploying application with latest code ---"
-              # This is now the single source of truth for the deployment.
+              echo "--- [DEPLOY] Building and restarting application stack ---"
               docker compose up --build -d --force-recreate
               
-              echo "--- Applying any new database migrations ---"
-              sleep 10
+              echo "--- [DEPLOY] Applying database migrations ---"
+              sleep 10 
               docker compose exec app npx prisma migrate deploy
               
-              echo "--- DEPLOYMENT COMPLETE ---"
+              echo "--- [DEPLOY] DEPLOYMENT COMPLETE ---"
             EOF
 
     rules:
