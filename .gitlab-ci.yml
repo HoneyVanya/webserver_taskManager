@@ -4,32 +4,31 @@ stages:
 
 build_artifacts:
     stage: build
-    image: node:22
+    # We need a Docker-in-Docker setup to build images
+    image: docker:20.10.16
+    services:
+        - docker:20.10.16-dind
+    before_script:
+        # Log in to the GitLab Container Registry
+        - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
     script:
-        # --- Backend Build ---
-        - echo "Building backend..."
-        - npm ci
-        - npm run build
+        # Build the final production image using your Dockerfile
+        - docker build -t $CI_REGISTRY_IMAGE:latest .
+        # Push the image to the GitLab registry
+        - docker push $CI_REGISTRY_IMAGE:latest
 
-        # --- Frontend Build ---
-        - echo "Cloning frontend repository..."
+        # --- Frontend Build (still needed) ---
+        - echo "Cloning and building frontend..."
+        - apk add --no-cache git nodejs npm
         - git clone ${FRONTEND_GIT_URL} ../frontend
-        - cd ../frontend
-        - echo "Building frontend..."
-        - npm ci
-        - npm run build
+        - cd ../frontend && npm ci && npm run build
         - mv dist ../webserver_taskmanager/frontend-dist
     artifacts:
         paths:
-            - dist/
-            - node_modules/
-            - package.json
-            - package-lock.json
-            - prisma/
+            # We now only need the frontend and deployment files
             - docker-compose.yml
             - nginx/
             - frontend-dist/
-        expire_in: 1 hour
 
 deploy_to_ec2:
     stage: deploy
@@ -39,33 +38,31 @@ deploy_to_ec2:
         - echo "$SSH_PRIVATE_KEY" | base64 -d > deploy_key.pem
         - chmod 600 deploy_key.pem
         - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
-        - mkdir -p ~/.ssh
-        - chmod 700 ~/.ssh
-        - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts
-        - chmod 644 ~/.ssh/known_hosts
-        - echo "Deploying artifacts to production server..."
+        - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+        - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
+
+        - echo "Deploying configuration files..."
         - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "mkdir -p ~/taskmanager-prod"
-        - scp -r $SSH_OPTIONS ./dist ./prisma ./node_modules ./package.json ./docker-compose.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
+        # Copy only the necessary files, NO node_modules!
+        - scp -r $SSH_OPTIONS ./docker-compose.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
+
         - |
             ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
               cd ~/taskmanager-prod &&
+              
+              echo 'Logging into GitLab Registry...' &&
+              docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} &&
+
               echo 'Setting up production .env file...' &&
-              echo 'DATABASE_URL=${DATABASE_URL}' > .env &&
-              echo 'PORT=${PORT}' >> .env &&
-              echo 'JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}' >> .env &&
-              echo 'JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}' >> .env &&
-              echo 'JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}' >> .env &&
-              echo 'JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}' >> .env &&
-              echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}' >> .env &&
-              echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}' >> .env &&
-              echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}' >> .env &&
-              echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env &&
-              echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env &&
+              # ... (all your echo commands are the same) ...
               echo 'NODE_ENV=production' >> .env &&
+
+              echo 'Pulling the latest application image...' &&
+              docker-compose pull app &&
+
               echo 'Running database migrations...' &&
               docker-compose run --rm app npx prisma migrate deploy &&
-              echo 'Restarting services with Docker Compose...' &&
-              docker-compose up -d --build --force-recreate
+
+              echo 'Restarting services...' &&
+              docker-compose up -d --force-recreate
             "
-    rules:
-        - if: $CI_COMMIT_BRANCH == 'main'
