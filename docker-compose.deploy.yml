@@ -1,6 +1,6 @@
 services:
   app:
-    image: registry.gitlab.com/ivan.brovko/webserver_taskmanager/app:latest
+    image: registry.gitlab.com/ivan.brovko/webserver_taskmanager:latest
     restart: always
     env_file: [".env"]
     depends_on:
