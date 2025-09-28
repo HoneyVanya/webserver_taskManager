@@ -21,7 +21,9 @@ deploy_backend:
               cd ~/taskmanager-prod &&
               
               echo 'Logging into GitLab Registry...' &&
-              docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} &&
+              # --- THE FIX IS HERE ---
+              # Use our new, powerful deploy token credentials
+              docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${CI_REGISTRY} &&
 
               echo 'Setting up production .env file...' &&
               # ... (echo commands are the same) ...
