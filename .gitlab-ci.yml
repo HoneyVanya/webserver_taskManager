@@ -12,6 +12,9 @@ build_job:
     script:
         - docker build -t ${CI_REGISTRY_IMAGE}/app:latest .
         - docker push ${CI_REGISTRY_IMAGE}/app:latest
+    artifacts:
+        paths:
+            - docker-compose.deploy.yml
 
 deploy_job:
     stage: deploy
