@@ -1,7 +1,19 @@
 stages:
+    - build
     - deploy
 
-deploy_backend:
+build_job:
+    stage: build
+    image: docker:20.10.16
+    services:
+        - docker:20.10.16-dind
+    before_script:
+        - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
+    script:
+        - docker build -t ${CI_REGISTRY_IMAGE}/app:latest .
+        - docker push ${CI_REGISTRY_IMAGE}/app:latest
+
+deploy_job:
     stage: deploy
     image: alpine:latest
     script:
@@ -11,30 +23,31 @@ deploy_backend:
         - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
         - mkdir -p ~/.ssh && chmod 700 ~/.ssh
         - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
-
         - echo "Deploying backend to server..."
         - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "mkdir -p ~/taskmanager-prod"
         - scp $SSH_OPTIONS ./docker-compose.deploy.yml ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/docker-compose.yml
-
         - |
             ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
               cd ~/taskmanager-prod &&
-              
               echo 'Logging into GitLab Registry...' &&
-              # --- THE FIX IS HERE ---
-              # Use our new, powerful deploy token credentials
               docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${CI_REGISTRY} &&
-
               echo 'Setting up production .env file...' &&
-              # ... (echo commands are the same) ...
+              echo 'DATABASE_URL=postgresql://myuser:mypassword@db:5432/taskmanager' > .env &&
+              echo 'PORT=3000' >> .env &&
+              echo 'JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}' >> .env &&
+              echo 'JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}' >> .env &&
+              echo 'JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}' >> .env &&
+              echo 'JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}' >> .env &&
+              echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}' >> .env &&
+              echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}' >> .env &&
+              echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}' >> .env &&
+              echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env &&
+              echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env &&
               echo 'NODE_ENV=production' >> .env &&
-
               echo 'Pulling the latest application image...' &&
               docker compose pull app &&
-
               echo 'Running database migrations...' &&
               docker compose run --rm app npx prisma migrate deploy &&
-
               echo 'Starting services...' &&
               docker compose up -d --force-recreate
             "
