@@ -9,10 +9,8 @@ export const loginSchema = z.object({
 
 export const refreshTokenSchema = z.object({
     body: z.object({
-        body: z.object({
-            refreshToken: z.string({
-                required_error: 'Refresh token is required',
-            }),
+        refreshToken: z.string({
+            required_error: 'Refresh token is required',
         }),
     }),
 });

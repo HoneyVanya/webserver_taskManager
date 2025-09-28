@@ -1,53 +1,74 @@
 stages:
+    - build
     - deploy
 
-deploy_to_prod:
+build_artifacts:
+    stage: build
+    image: node:18-alpine
+    script:
+        # --- Backend Build ---
+        - echo "Building backend..."
+        - npm install
+        - npm run build
+
+        # --- Frontend Build ---
+        - echo "Cloning frontend repository..."
+        - git clone https://gitlab.com/HoneyVanya/taskmanager_frontend.git ../frontend
+        - cd ../frontend
+        - echo "Building frontend..."
+        - npm install
+        - npm run build
+        - mv dist ../webserver_taskmanager/frontend-dist
+    artifacts:
+        paths:
+            # Backend files
+            - dist/
+            - node_modules/
+            - package.json
+            - prisma/
+            - docker-compose.yml
+            - nginx/
+            # Frontend files
+            - frontend-dist/
+        expire_in: 1 hour
+
+deploy_to_ec2:
     stage: deploy
     image: alpine:latest
-
     before_script:
-        - apk add --no-cache openssh-client git
+        - 'which ssh-agent || ( apk update && apk add openssh-client )'
         - eval $(ssh-agent -s)
-        - echo "$SSH_PRIVATE_KEY_FILE" | base64 -d | ssh-add -
-
+        - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+        - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+        - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
     script:
-        - |
-            # Using a double-quoted "EOF" to allow variable expansion for $GIT_PULL_URL
-            ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" ubuntu@3.75.211.159 << "EOF"
-              # Fail the script immediately if any command fails
-              set -e
-              
-              echo "--- [DEPLOY] Preparing server environment ---"
-              # Check for the correct directory name: webservertaskmanager
-              if [ ! -d "webservertaskmanager" ]; then
-                echo "Cloning repository..."
-                # Clone into the correct directory name: webservertaskmanager
-                git clone "${GIT_PULL_URL}" webservertaskmanager
-              fi
-              
-              # Change into the correct directory name: webservertaskmanager
-              cd webservertaskmanager
-              
-              echo "--- [DEPLOY] Pulling latest code and configuration ---"
-              # Ensure the remote URL is correct before pulling
-              git remote set-url origin "${GIT_PULL_URL}"
-              git pull
-              
-              echo "--- [DEPLOY] Building and restarting application stack ---"
-              docker compose up --build -d --force-recreate
-              
-              echo "--- [DEPLOY] Waiting for application to become healthy ---"
-              # Inspect the container with the correct name: webservertaskmanager-app-1
-              until [ "$(docker inspect -f {{.State.Health.Status}} webservertaskmanager-app-1)" = "healthy" ]; do
-                  echo "Waiting for app container to be healthy...";
-                  sleep 2;
-              done
-              
-              echo "--- [DEPLOY] Application is healthy. Applying database migrations. ---"
-              docker compose exec app npx prisma migrate deploy
-              
-              echo "--- [DEPLOY] DEPLOYMENT COMPLETE ---"
-            "EOF"
+        - echo "Deploying artifacts to production server..."
+        - ssh ${SSH_USER}@${SSH_SERVER_IP} "mkdir -p ~/taskmanager-prod"
+        - scp -r ./dist ./prisma ./node_modules ./package.json ./docker-compose.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
 
+          - >
+          ssh ${ubuntu}@${3.75.211.159} "
+          cd ~/webserver_taskmanager &&
+
+          echo 'Setting up production .env file...' &&
+          echo 'DATABASE_URL=${DATABASE_URL}' > .env &&
+          echo 'PORT=${PORT}' >> .env &&
+          echo 'JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}' >> .env &&
+          echo 'JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}' >> .env &&
+          echo 'JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}' >> .env &&
+          echo 'JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}' >> .env &&
+          echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}' >> .env &&
+          echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}' >> .env &&
+          echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}' >> .env &&
+          echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env &&
+          echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env &&
+          echo 'NODE_ENV=production' >> .env &&
+
+          echo 'Running database migrations...' &&
+          docker-compose run --rm app npx prisma migrate deploy &&
+
+          echo 'Restarting services with Docker Compose...' &&
+          docker-compose up -d --build --force-recreate
+          "
     rules:
-        - if: '$CI_COMMIT_BRANCH == "main"'
+        - if: $CI_COMMIT_BRANCH == 'main'
