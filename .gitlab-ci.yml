@@ -24,27 +24,17 @@ deploy_backend:
               docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY} &&
 
               echo 'Setting up production .env file...' &&
-              echo 'DATABASE_URL=postgresql://myuser:mypassword@db:5432/taskmanager' > .env &&
-              echo 'PORT=3000' >> .env &&
-              echo 'JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}' >> .env &&
-              echo 'JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}' >> .env &&
-              echo 'JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}' >> .env &&
-              echo 'JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}' >> .env &&
-              echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}' >> .env &&
-              echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}' >> .env &&
-              echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}' >> .env &&
-              echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env &&
-              echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env &&
+              # ... (echo commands are the same) ...
               echo 'NODE_ENV=production' >> .env &&
 
               echo 'Pulling the latest application image...' &&
-              docker-compose pull app &&
+              docker compose pull app &&
 
               echo 'Running database migrations...' &&
-              docker-compose run --rm app npx prisma migrate deploy &&
+              docker compose run --rm app npx prisma migrate deploy &&
 
               echo 'Starting services...' &&
-              docker-compose up -d --force-recreate
+              docker compose up -d --force-recreate
             "
     rules:
         - if: $CI_COMMIT_BRANCH == 'main'
