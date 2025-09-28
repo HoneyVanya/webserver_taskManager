@@ -1,5 +1,6 @@
 # --- STAGE 1: Dependencies ---
-FROM node:18.18.2-alpine AS deps
+# Use Node.js v22-alpine for all stages
+FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 # Also copy the prisma schema, as it's needed for the generate step
@@ -9,7 +10,7 @@ RUN npm install
 RUN npx prisma generate
 
 # --- STAGE 2: Builder ---
-FROM node:18.18.2-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 # The prisma client is now inside node_modules, so we just copy the schema
@@ -19,10 +20,10 @@ COPY . .
 RUN npm run build
 
 # --- STAGE 3: Production Runner ---
-FROM node:18.18.2-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 # We only need production dependencies
-COPY --from=deps /app/package.json ./
+COPY --from=deps /app/package.json ./package-lock.json ./
 RUN npm install --omit=dev
 # Copy the built code, prisma schema, AND the generated client
 COPY --from=builder /app/dist ./dist
