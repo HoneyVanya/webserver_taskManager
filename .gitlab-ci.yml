@@ -4,7 +4,7 @@ stages:
 
 build_artifacts:
     stage: build
-    image: node:22-alpine
+    image: node:22
     script:
         # --- Backend Build ---
         - echo "Building backend..."
