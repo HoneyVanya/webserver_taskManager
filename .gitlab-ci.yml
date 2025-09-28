@@ -1,39 +1,25 @@
 stages:
-    - build
     - deploy
-
-build_job:
-    stage: build
-    image: docker:20.10.16
-    services:
-        - docker:20.10.16-dind
-    before_script:
-        - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
-    script:
-        - docker build -t ${CI_REGISTRY_IMAGE}:latest .
-        - docker push ${CI_REGISTRY_IMAGE}:latest
-    artifacts:
-        paths:
-            - docker-compose.deploy.yml
 
 deploy_job:
     stage: deploy
     image: alpine:latest
     script:
-        - apk add --no-cache openssh-client docker-compose
+        - apk add --no-cache openssh-client rsync
         - echo "$SSH_PRIVATE_KEY" | base64 -d > deploy_key.pem
         - chmod 600 deploy_key.pem
         - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
         - mkdir -p ~/.ssh && chmod 700 ~/.ssh
         - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
-        - echo "Deploying backend to server..."
+
+        - echo "Deploying application source to server..."
         - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "mkdir -p ~/taskmanager-prod"
-        - scp $SSH_OPTIONS ./docker-compose.deploy.yml ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/docker-compose.yml
+        - rsync -avz -e "ssh $SSH_OPTIONS" --exclude 'node_modules' ./ ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
+
         - |
             ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
               cd ~/taskmanager-prod &&
-              echo 'Logging into GitLab Registry...' &&
-              docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${CI_REGISTRY} &&
+              
               echo 'Setting up production .env file...' &&
               echo 'DATABASE_URL=postgresql://myuser:mypassword@db:5432/taskmanager' > .env &&
               echo 'PORT=3000' >> .env &&
@@ -47,11 +33,10 @@ deploy_job:
               echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env &&
               echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env &&
               echo 'NODE_ENV=production' >> .env &&
-              echo 'Pulling the latest application image...' &&
-              docker compose pull app &&
-              echo 'Running database migrations...' &&
+
+              echo 'Building and starting services on the server...' &&
+              docker compose build &&
               docker compose run --rm app npx prisma migrate deploy &&
-              echo 'Starting services...' &&
               docker compose up -d --force-recreate
             "
     rules:
