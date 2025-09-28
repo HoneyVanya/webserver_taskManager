@@ -10,6 +10,8 @@ build_artifacts:
     variables:
         DOCKER_HOST: tcp://docker:2375
     before_script:
+        - apt-get update
+        - apt-get install -y docker.io
         - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
     script:
         # --- 1. Build and push the backend image ---
@@ -19,7 +21,7 @@ build_artifacts:
 
         # --- 2. Build the frontend ---
         - echo "Building frontend..."
-        - apt-get update && apt-get install -y git
+        - apt-get install -y git
         - git clone ${FRONTEND_GIT_URL} ../frontend
         - cd ../frontend
         - npm ci
