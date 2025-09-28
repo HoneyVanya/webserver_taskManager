@@ -8,7 +8,7 @@ build_artifacts:
     script:
         # --- Backend Build ---
         - echo "Building backend..."
-        - npm install
+        - npm ci
         - npm run build
 
         # --- Frontend Build ---
@@ -16,7 +16,7 @@ build_artifacts:
         - git clone ${FRONTEND_GIT_URL} ../frontend
         - cd ../frontend
         - echo "Building frontend..."
-        - npm install
+        - npm ci
         - npm run build
         - mv dist ../webserver_taskmanager/frontend-dist
     artifacts:
@@ -25,6 +25,7 @@ build_artifacts:
             - dist/
             - node_modules/
             - package.json
+            - package-lock.json
             - prisma/
             - docker-compose.yml
             - nginx/
