@@ -8,7 +8,7 @@ build_artifacts:
     script:
         # --- Backend Build ---
         - echo "Building backend..."
-        - npm ci
+        - npm install --save-dev @types/node @types/express @types/passport
         - npm run build
 
         # --- Frontend Build ---
