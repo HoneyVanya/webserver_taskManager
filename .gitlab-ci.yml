@@ -2,39 +2,38 @@ stages:
     - build
     - deploy
 
-build_backend:
+build_artifacts:
     stage: build
-    image: docker:20.10.16
+    image: node:22
     services:
         - docker:20.10.16-dind
+    variables:
+        DOCKER_HOST: tcp://docker:2375
     before_script:
         - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
     script:
+        # --- 1. Build and push the backend image ---
         - echo "Building and pushing backend image..."
         - docker build -t ${CI_REGISTRY_IMAGE}:latest .
         - docker push ${CI_REGISTRY_IMAGE}:latest
 
-build_frontend:
-    stage: build
-    image: node:22-alpine
-    script:
-        - echo "Installing frontend dependencies..."
-        - apk add --no-cache git
-        - git clone ${FRONTEND_GIT_URL} frontend
-        - cd frontend
-        - npm ci
+        # --- 2. Build the frontend ---
         - echo "Building frontend..."
+        - apt-get update && apt-get install -y git
+        - git clone ${FRONTEND_GIT_URL} ../frontend
+        - cd ../frontend
+        - npm ci
         - npm run build
+        - mv dist ../webserver_taskmanager/frontend-dist
     artifacts:
         paths:
-            - frontend/dist/
+            - docker-compose.yml
+            - nginx/
+            - frontend-dist/
 
 deploy_to_ec2:
     stage: deploy
     image: alpine:latest
-    needs:
-        - build_backend
-        - build_frontend
     script:
         - apk add --no-cache openssh-client docker-compose
         - echo "$SSH_PRIVATE_KEY" | base64 -d > deploy_key.pem
@@ -45,8 +44,7 @@ deploy_to_ec2:
 
         - echo "Deploying full stack to production server..."
         - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "rm -rf ~/taskmanager-prod && mkdir -p ~/taskmanager-prod"
-        - scp -r $SSH_OPTIONS ./frontend/dist/* ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/frontend-dist/
-        - scp $SSH_OPTIONS ./docker-compose.yml ./nginx/nginx.conf ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
+        - scp -r $SSH_OPTIONS ./docker-compose.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
 
         - |
             ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
@@ -54,11 +52,22 @@ deploy_to_ec2:
               
               docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${CI_REGISTRY} &&
               
-              # ... All of your .env echo commands ...
               echo 'DATABASE_URL=postgresql://myuser:mypassword@db:5432/taskmanager' > .env &&
-              # ...
+              echo 'PORT=3000' >> .env &&
+              echo 'JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}' >> .env &&
+              echo 'JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}' >> .env &&
+              echo 'JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}' >> .env &&
+              echo 'JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}' >> .env &&
+              echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}' >> .env &&
+              echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}' >> .env &&
+              echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}' >> .env &&
+              echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env &&
+              echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env &&
               echo 'NODE_ENV=production' >> .env &&
 
               docker compose pull app &&
+              docker compose run --rm app npx prisma migrate deploy &&
               docker compose up -d --force-recreate
             "
+    rules:
+        - if: $CI_COMMIT_BRANCH == 'main'
