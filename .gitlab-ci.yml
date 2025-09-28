@@ -4,7 +4,7 @@ stages:
 
 build_artifacts:
     stage: build
-    image: node:18-alpine
+    image: node:20-alpine
     script:
         # --- Backend Build ---
         - echo "Building backend..."
@@ -13,7 +13,7 @@ build_artifacts:
 
         # --- Frontend Build ---
         - echo "Cloning frontend repository..."
-        - git clone https://gitlab.com/HoneyVanya/taskmanager_frontend.git ../frontend
+        - git clone ${FRONTEND_GIT_URL} ../frontend
         - cd ../frontend
         - echo "Building frontend..."
         - npm install
@@ -46,29 +46,29 @@ deploy_to_ec2:
         - ssh ${SSH_USER}@${SSH_SERVER_IP} "mkdir -p ~/taskmanager-prod"
         - scp -r ./dist ./prisma ./node_modules ./package.json ./docker-compose.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
 
-          - >
-          ssh ${ubuntu}@${3.75.211.159} "
-          cd ~/webserver_taskmanager &&
+        - |
+            ssh ${SSH_USER}@${SSH_SERVER_IP} "
+              cd ~/taskmanager-prod &&
 
-          echo 'Setting up production .env file...' &&
-          echo 'DATABASE_URL=${DATABASE_URL}' > .env &&
-          echo 'PORT=${PORT}' >> .env &&
-          echo 'JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}' >> .env &&
-          echo 'JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}' >> .env &&
-          echo 'JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}' >> .env &&
-          echo 'JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}' >> .env &&
-          echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}' >> .env &&
-          echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}' >> .env &&
-          echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}' >> .env &&
-          echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env &&
-          echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env &&
-          echo 'NODE_ENV=production' >> .env &&
+              echo 'Setting up production .env file...' &&
+              echo 'DATABASE_URL=${DATABASE_URL}' > .env &&
+              echo 'PORT=${PORT}' >> .env &&
+              echo 'JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}' >> .env &&
+              echo 'JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}' >> .env &&
+              echo 'JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}' >> .env &&
+              echo 'JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}' >> .env &&
+              echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}' >> .env &&
+              echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}' >> .env &&
+              echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}' >> .env &&
+              echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env &&
+              echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env &&
+              echo 'NODE_ENV=production' >> .env &&
 
-          echo 'Running database migrations...' &&
-          docker-compose run --rm app npx prisma migrate deploy &&
+              echo 'Running database migrations...' &&
+              docker-compose run --rm app npx prisma migrate deploy &&
 
-          echo 'Restarting services with Docker Compose...' &&
-          docker-compose up -d --build --force-recreate
-          "
+              echo 'Restarting services with Docker Compose...' &&
+              docker-compose up -d --build --force-recreate
+            "
     rules:
         - if: $CI_COMMIT_BRANCH == 'main'

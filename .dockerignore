@@ -1,0 +1,19 @@
+# Git and OS files
+.git
+.gitignore
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Environment files
+.env*
+docker.env
+
+# Logs and temp files
+*.log
+api.http
