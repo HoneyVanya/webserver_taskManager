@@ -45,12 +45,13 @@ deploy_to_ec2:
         - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts
         - chmod 644 ~/.ssh/known_hosts
     script:
+        - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
         - echo "Deploying artifacts to production server..."
-        - ssh ${SSH_USER}@${SSH_SERVER_IP} "mkdir -p ~/taskmanager-prod"
-        - scp -r ./dist ./prisma ./node_modules ./package.json ./docker-compose.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
+        - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "mkdir -p ~/taskmanager-prod"
+        - scp -r $SSH_OPTIONS ./dist ./prisma ./node_modules ./package.json ./docker-compose.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
 
         - |
-            ssh ${SSH_USER}@${SSH_SERVER_IP} "
+            ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
               cd ~/taskmanager-prod &&
 
               echo 'Setting up production .env file...' &&
