@@ -15,13 +15,18 @@ build_backend:
         - echo "Building and pushing backend image..."
         - docker build -t ${CI_REGISTRY_IMAGE}:latest .
         - docker push ${CI_REGISTRY_IMAGE}:latest
+    artifacts:
+        paths:
+            - docker-compose.yml
+            - nginx/
 
 deploy_to_ec2:
     stage: deploy
     image: alpine:latest
     needs:
         - job: build_backend
-        - project: ivan.brovko/taskmanager_frontend
+          artifacts: true
+        - project: HoneyVanya/taskmanager_frontend
           ref: main
           job: build_app
           artifacts: true
@@ -37,27 +42,14 @@ deploy_to_ec2:
         - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "rm -rf ~/taskmanager-prod && mkdir -p ~/taskmanager-prod"
 
         - mv dist frontend-dist
+
         - scp -r $SSH_OPTIONS ./docker-compose.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
 
         - |
             ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
               cd ~/taskmanager-prod &&
-              
               docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${CI_REGISTRY} &&
-              
-              echo 'DATABASE_URL=postgresql://myuser:mypassword@db:5432/taskmanager' > .env &&
-              echo 'PORT=3000' >> .env &&
-              echo 'JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}' >> .env &&
-              echo 'JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}' >> .env &&
-              echo 'JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}' >> .env &&
-              echo 'JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}' >> .env &&
-              echo 'GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}' >> .env &&
-              echo 'GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}' >> .env &&
-              echo 'RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}' >> .env &&
-              echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env &&
-              echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env &&
-              echo 'NODE_ENV=production' >> .env &&
-
+              # ... your .env and docker compose commands ...
               docker compose pull app &&
               docker compose run --rm app npx prisma migrate deploy &&
               docker compose up -d --force-recreate
