@@ -2,40 +2,29 @@ stages:
     - build
     - deploy
 
-build_artifacts:
+build_backend:
     stage: build
-    image: node:22
+    image: docker:20.10.16
     services:
         - docker:20.10.16-dind
     variables:
         DOCKER_HOST: tcp://docker:2375
     before_script:
-        - apt-get update
-        - apt-get install -y docker.io
         - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
     script:
-        # --- 1. Build and push the backend image ---
         - echo "Building and pushing backend image..."
         - docker build -t ${CI_REGISTRY_IMAGE}:latest .
         - docker push ${CI_REGISTRY_IMAGE}:latest
 
-        # --- 2. Build the frontend ---
-        - echo "Building frontend..."
-        - apt-get install -y git
-        - git clone ${FRONTEND_GIT_URL} ../frontend
-        - cd ../frontend
-        - npm ci
-        - npm run build
-        - mv dist ../webserver_taskmanager/frontend-dist
-    artifacts:
-        paths:
-            - docker-compose.yml
-            - nginx/
-            - frontend-dist/
-
 deploy_to_ec2:
     stage: deploy
     image: alpine:latest
+    needs:
+        - job: build_backend
+        - project: ivan.brovko/taskmanager_frontend
+          ref: main
+          job: build_app
+          artifacts: true
     script:
         - apk add --no-cache openssh-client docker-compose
         - echo "$SSH_PRIVATE_KEY" | base64 -d > deploy_key.pem
@@ -46,6 +35,8 @@ deploy_to_ec2:
 
         - echo "Deploying full stack to production server..."
         - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "rm -rf ~/taskmanager-prod && mkdir -p ~/taskmanager-prod"
+
+        - mv dist frontend-dist
         - scp -r $SSH_OPTIONS ./docker-compose.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
 
         - |
