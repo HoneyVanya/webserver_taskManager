@@ -28,16 +28,16 @@ beforeAll(async () => {
     await prisma.$connect();
 });
 
-afterEach(async () => {
-    await prisma.task.deleteMany({});
-    await prisma.user.deleteMany({});
-});
-
 afterAll(async () => {
     await prisma.$disconnect();
 });
 
 describe('User API Endpoints', () => {
+    beforeEach(async () => {
+        await prisma.task.deleteMany({});
+        await prisma.user.deleteMany({});
+    });
+
     it('GET /users should return an empty array when no users exist', async () => {
         const response = await request(app).get('/users');
         expect(response.status).toBe(200);
