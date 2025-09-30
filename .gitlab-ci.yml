@@ -50,7 +50,7 @@ deploy_to_ec2:
         - test_backend
         - build_artifacts
     script:
-        - apk add --no-cache openssh-client docker-compose
+        - apk add --no-cache openssh-client docker-compose rsync
         - echo "$SSH_PRIVATE_KEY" | base64 -d > deploy_key.pem
         - chmod 600 deploy_key.pem
         - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
