@@ -1,6 +1,6 @@
 services:
   app:
-    # This tells the server to PULL the image from the registry
+    # Use the image we will build and push to the registry
     image: registry.gitlab.com/taskmanager-group/webserver_taskmanager:latest
     restart: always
     env_file: [".env"]
