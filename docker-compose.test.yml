@@ -1,0 +1,38 @@
+services:
+  test-db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=taskmanager_test
+    ports:
+      - "5433:5432"
+
+  test-runner:
+    build:
+      context: .
+      target: test
+    depends_on:
+      - test-db
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@test-db:5432/taskmanager_test?schema=public
+      - DATABASE_URL_TEST=postgresql://myuser:mypassword@test-db:5432/taskmanager_test?schema=public
+      - JWT_ACCESS_SECRET=test-secret
+      - JWT_REFRESH_SECRET=test-refresh-secret
+      - JWT_ACCESS_EXPIRATION=15m
+      - JWT_REFRESH_EXPIRATION=7d
+      - GOOGLE_CLIENT_ID=test-google-id
+      - GOOGLE_CLIENT_SECRET=test-google-secret
+      - RECAPTCHA_SECRET_KEY=test-recaptcha-secret
+      - GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+      - FRONTEND_URL=http://localhost:5173
+    command: >
+      sh -c "
+        echo 'Waiting for DB...' &&
+        sleep 5 &&
+        echo 'Running migrations...' &&
+        npx prisma migrate deploy &&
+        echo 'Running tests...' &&
+        npm test
+      "

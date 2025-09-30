@@ -8,6 +8,7 @@ import { protect } from '../middleware/auth.middleware.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 import { validate } from '../middleware/validate.js';
 import { loginSchema, refreshTokenSchema } from '../schemas/auth.schema.js';
+import { AppUser } from '../types/types.js';
 
 @controller('/auth')
 export class AuthController {
@@ -44,7 +45,8 @@ export class AuthController {
 
     @httpPost('/logout', protect)
     public async logout(req: Request, res: Response) {
-        const result = await this._authService.logout(req.user!.id);
+        const user = req.user as AppUser;
+        const result = await this._authService.logout(user.id);
         return res.json(result);
     }
 }

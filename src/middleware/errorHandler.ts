@@ -8,6 +8,8 @@ export const errorHandler: ErrorRequestHandler = (
     res: Response,
     _next: NextFunction
 ) => {
+    console.error('--- DETAILED ERROR IN TEST ---', err);
+
     logger.error(err);
 
     if (res.statusCode === 401) {
@@ -45,7 +47,9 @@ export const errorHandler: ErrorRequestHandler = (
     if (err.code === 'P2002') {
         res.status(409).json({
             error: 'Conflict',
-            message: `A record with this ${err.meta?.target.join(', ')} already exists.`,
+            message: `A record with this ${err.meta?.target.join(
+                ', '
+            )} already exists.`,
         });
         return;
     }

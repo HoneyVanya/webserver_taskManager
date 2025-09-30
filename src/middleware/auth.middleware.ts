@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
 import prisma from '../config/db.js';
 import { env } from '../config/env.js';
+import { AppUser } from '../types/types.js';
 
 export const protect = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
@@ -36,7 +37,7 @@ export const protect = asyncHandler(
                     );
                 }
 
-                req.user = foundUser;
+                req.user = foundUser as AppUser;
 
                 next();
             } catch (error) {

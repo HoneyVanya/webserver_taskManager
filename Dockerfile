@@ -14,6 +14,10 @@ COPY prisma ./prisma
 COPY . .
 RUN npm run build
 
+# --- NEW STAGE 3: TEST ---
+# This stage is based on the builder, so it has all devDependencies and source code
+FROM builder AS test
+
 # --- STAGE 3: Production Runner ---
 FROM node:22-alpine AS runner
 WORKDIR /app

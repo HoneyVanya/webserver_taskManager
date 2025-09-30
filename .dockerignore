@@ -17,3 +17,4 @@ docker.env
 # Logs and temp files
 *.log
 api.http
+!tsconfig.jest.json

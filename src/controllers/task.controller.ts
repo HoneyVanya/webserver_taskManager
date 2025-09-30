@@ -14,6 +14,7 @@ import { validate } from '../middleware/validate.js';
 import { updateTaskSchema, createTaskSchema } from '../schemas/task.schema.js';
 import { ITaskCommands } from '../types/task.commands.interface.js';
 import { ITaskQueries } from '../types/task.queries.interface.js';
+import { AppUser } from '../types/types.js';
 
 @controller('/tasks', protect)
 export class TaskController {
@@ -30,15 +31,17 @@ export class TaskController {
 
     @httpGet('/')
     public async getAllTasks(req: Request, res: Response) {
-        const tasks = await this._taskQueries.findAllTasksForUser(req.user!.id);
+        const user = req.user as AppUser;
+        const tasks = await this._taskQueries.findAllTasksForUser(user.id);
         return res.json(tasks);
     }
 
     @httpPost('/', validate(createTaskSchema))
     public async createTask(req: Request, res: Response) {
+        const user = req.user as AppUser;
         const newTask = await this._taskCommands.createTask(
             req.body.title,
-            req.user!.id
+            user.id
         );
         return res.status(201).json(newTask);
     }
@@ -46,9 +49,10 @@ export class TaskController {
     @httpPut('/:id', validate(updateTaskSchema))
     public async updateTask(req: Request, res: Response) {
         const { id } = req.params;
+        const user = req.user as AppUser;
         const updateTask = await this._taskCommands.updateTask(
             id,
-            req.user!.id,
+            user.id,
             req.body
         );
         return res.json(updateTask);
@@ -57,7 +61,8 @@ export class TaskController {
     @httpDelete('/:id')
     public async deleteTask(req: Request, res: Response) {
         const { id } = req.params;
-        await this._taskCommands.deleteTask(req.user!.id, id);
+        const user = req.user as AppUser;
+        await this._taskCommands.deleteTask(user.id, id);
         return res.status(204).send();
     }
 }
