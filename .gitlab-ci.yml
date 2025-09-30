@@ -26,6 +26,8 @@ deploy:
         - echo "$SSH_PRIVATE_KEY" | base64 -d > deploy_key.pem
         - chmod 600 deploy_key.pem
         - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
+        - mkdir -p ~/.ssh
+        - chmod 700 ~/.ssh
         - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts
 
         - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "rm -rf ~/taskmanager-prod && mkdir -p ~/taskmanager-prod"
