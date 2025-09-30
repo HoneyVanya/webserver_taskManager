@@ -3,33 +3,24 @@ stages:
 
 deploy:
     stage: deploy
-    # Use a base image that has Docker
     image: docker:20.10.16
     services:
         - docker:20.10.16-dind
     variables:
         DOCKER_HOST: tcp://docker:2375
     before_script:
-        # Log in to the registry once at the start
         - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
     script:
-        # --- 1. BUILD BACKEND ---
         - echo "Building and pushing backend image..."
         - docker build -t ${CI_REGISTRY_IMAGE}:latest .
         - docker push ${CI_REGISTRY_IMAGE}:latest
 
-        # --- 2. BUILD FRONTEND ---
         - echo "Building frontend..."
-        # Install git, which is not in the docker image by default
         - apk add --no-cache git
-        # Use the CI_JOB_TOKEN for secure, temporary access to the other repo
         - git clone "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/taskmanager-group/taskmanager_frontend.git" ../frontend
-        # Run the frontend build inside a clean, temporary Node.js container
-        # This completely isolates the build and avoids any environment issues.
         - docker run --rm -v "$(pwd)/../frontend:/app" -w /app node:22 sh -c "npm ci && npm run build"
         - mv ../frontend/dist ./frontend-dist
 
-        # --- 3. DEPLOY TO EC2 ---
         - echo "Deploying all artifacts to server..."
         - apk add --no-cache openssh-client rsync
         - echo "$SSH_PRIVATE_KEY" | base64 -d > deploy_key.pem
@@ -37,13 +28,10 @@ deploy:
         - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
         - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts
 
-        # Create the remote directory
         - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "rm -rf ~/taskmanager-prod && mkdir -p ~/taskmanager-prod"
 
-        # Use rsync to copy the necessary files (it's more efficient than scp for directories)
         - rsync -avz -e "ssh $SSH_OPTIONS" ./docker-compose.prod.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
 
-        # --- 4. RUN ON EC2 ---
         - |
             ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
               cd ~/taskmanager-prod &&
