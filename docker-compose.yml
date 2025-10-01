@@ -13,7 +13,6 @@ services:
             retries: 5
             start_period: 30s
 
-    # Service 2: NGINX Reverse Proxy ('nginx')
     nginx:
         image: nginx:stable-alpine
         restart: always
@@ -28,7 +27,6 @@ services:
         depends_on:
             app:
                 condition: service_healthy
-    # Service 3: The Database ('db') - mostly unchanged
     db:
         image: postgres:14.1-alpine
         restart: always

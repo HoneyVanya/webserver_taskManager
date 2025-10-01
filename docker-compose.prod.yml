@@ -1,6 +1,5 @@
 services:
   app:
-    # This pulls the pre-built image from the registry
     image: registry.gitlab.com/taskmanager-group/webserver_taskmanager:latest
     restart: always
     env_file: [".env"]
