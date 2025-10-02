@@ -21,7 +21,7 @@ This project is a showcase of a robust, modern backend system.
 | **API**          | Express.js, RESTful principles, **Swagger/OpenAPI** documentation                           |
 | **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (Google OAuth 2.0)                     |
 | **Security**     | Rate Limiting, **Google ReCaptcha**, Password Hashing (bcrypt), CORS                        |
-| **Logging**      | **Pino** for structured, production-grade JSON logging                                      |
+| **Logging**      | **Pino** for structured JSON logging, streamed directly to **AWS CloudWatch** for monitoring. |
 | **Testing**      | **Jest** & **Supertest** for automated integration tests in a fully containerized environment     |
 | **DevOps**       | **Docker**, Multi-stage Dockerfiles, **NGINX**, **GitLab CI/CD**, **AWS EC2**, **Let's Encrypt (TLS)** |
 
@@ -55,12 +55,14 @@ This project is configured with a professional, three-stage GitLab CI/CD pipelin
 2.  **📦 Build:**
     -   Builds a lean, multi-stage production **Docker image** for the backend application.
     -   Pushes the tagged image to the **GitLab Container Registry**.
-    -   Clones the frontend repository and runs its build process to generate static assets.
+    -   Clones the frontend repository (using a `CI_JOB_TOKEN` for secure access) and runs its build process to generate static assets.
     -   Bundles all necessary deployment files (`docker-compose.prod.yml`, NGINX config, frontend assets) as artifacts.
 3.  **☁️ Deploy:**
     -   Securely connects to an **AWS EC2** instance via SSH.
     -   Cleans the deployment directory and copies the new artifacts.
     -   Connects to the GitLab Registry, pulls the new backend image, and gracefully restarts all services using **Docker Compose**.
+    -   All container logs are automatically streamed to **AWS CloudWatch** for centralized, production-grade monitoring.
+    -   The deployment script finishes by running `docker system prune` on the server to maintain a clean environment.
 
 ---
 
