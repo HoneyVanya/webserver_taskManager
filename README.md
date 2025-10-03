@@ -16,7 +16,7 @@ This project is a showcase of a robust, modern backend system.
 
 | Category         | Technology / Feature                                                                        |
 | ---------------- | ------------------------------------------------------------------------------------------- |
-| **Architecture** | **InversifyJS** (IoC), **CQRS** (Command Query Responsibility Segregation), **SOLID** Principles |
+| **Architecture** | **SOLID** & **GRASP** Principles, **InversifyJS** (IoC), **CQRS**                             |
 | **Database**     | PostgreSQL, **Prisma ORM** (with migrations and a dedicated test database)                  |
 | **API**          | Express.js, RESTful principles, **Swagger/OpenAPI** documentation                           |
 | **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (Google OAuth 2.0)                     |
@@ -27,23 +27,21 @@ This project is a showcase of a robust, modern backend system.
 
 ---
 
-## 🏛️ The Architectural Journey: From Prototype to Production
+## 🏛️ A Foundation of Design Principles
 
-A key goal of this project was to demonstrate an intentional architectural evolution, mirroring the process of building a mature, scalable application.
+This project was built with a deep focus on creating a clean, maintainable, and scalable architecture. The design is guided by the fundamental **SOLID** and **GRASP** principles.
 
-#### **Phase 1: The Monolithic Prototype**
-The project began with a simple, functional design where business logic, data access, and HTTP handling were tightly coupled. While quick to build, this approach lacked scalability and testability.
+-   **SOLID Principles:** Every class is designed for resilience.
+    -   **Single Responsibility:** The **CQRS** pattern (`TaskCommands`, `TaskQueries`) ensures each class has one, and only one, reason to change.
+    -   **Open/Closed:** The use of services and interfaces allows for new features to be added without modifying existing, working code.
+    -   **Liskov Substitution:** Interfaces (`IUserCommands`) are used to ensure that implementations can be swapped (e.g., for testing) without breaking the application.
+    -   **Interface Segregation:** Small, specific interfaces (`ITaskCommands`, `ITaskQueries`) prevent classes from depending on methods they don't use.
+    -   **Dependency Inversion:** **InversifyJS** is used to "invert control," ensuring high-level modules (Controllers) depend on abstractions (interfaces), not on low-level details (Services).
 
-#### **Phase 2: The Layered Architecture**
-The first major refactor introduced a professional layered architecture, embracing the **Separation of Concerns** principle.
--   **Service Layer (`/services`):** All business logic was extracted into dedicated, reusable services.
--   **Middleware Pipeline (`/middleware`):** Cross-cutting concerns like authentication (`protect`) and input validation (`validate`) were moved into a clean middleware chain.
--   **Declarative Validation (`/schemas`):** **Zod** was introduced for powerful, type-safe runtime validation of API inputs.
-
-#### **Phase 3: Decoupling with Inversion of Control (IoC) & CQRS**
-The final refactor achieved a fully decoupled and highly testable system by implementing the **Dependency Inversion** principle.
--   **Inversion of Control (IoC):** Using **InversifyJS**, dependencies are no longer directly imported. Instead, they are "injected" via a central container, breaking hard dependencies between layers (`Controller <- IAuthService` instead of `Controller -> AuthService`).
--   **CQRS (Command Query Responsibility Segregation):** To further clarify intent, services were split into "Commands" (write operations like `createUser`) and "Queries" (read operations like `findAllUsers`). This results in smaller, highly cohesive classes that are easier to understand, test, and maintain.
+-   **GRASP Principles:** Responsibilities are assigned intelligently across the system.
+    -   **Information Expert:** Logic resides in the class with the most information to perform it (e.g., `AuthService` handles all authentication logic).
+    -   **Low Coupling & High Cohesion:** The combination of **InversifyJS** (for low coupling) and **CQRS** (for high cohesion) results in a system where components are independent and focused.
+    -   **Controller:** Express controllers act as thin, clean entry points that delegate all business logic to the expert services, a core tenet of the GRASP Controller pattern.
 
 ---
 
