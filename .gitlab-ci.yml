@@ -12,8 +12,13 @@ test_backend:
     variables:
         DOCKER_HOST: tcp://docker:2375
     script:
-        - echo "Running backend integration tests..."
+        - echo "Running backend integration tests and security scan..."
         - apk add --no-cache docker-compose
+        - echo "Building test stage for audit..."
+        - docker build --target test -t test-image .
+        - echo "Running npm audit..."
+        - docker run --rm test-image npm audit --audit-level=high
+        - echo "Running integration tests..."
         - docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
         - echo "Tests passed!"
 
