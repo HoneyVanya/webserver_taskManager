@@ -5,6 +5,7 @@
 This repository contains the backend service for a full-stack Task Manager application. It was architected from the ground up to be a production-ready, resilient, and fully automated system, demonstrating modern software engineering principles from architecture to deployment.
 
 **[View the Live Demo](https://tasks.webservertaskmanager.com)**
+**[View the Live API Documentation](https://taskmanager-group.gitlab.io/webserver_taskmanager/)**
 
 The official client for this API is the [**Task Manager Frontend Repository**](https://gitlab.com/taskmanager-group/taskmanager_frontend).
 
@@ -20,47 +21,50 @@ This project is a showcase of a robust, modern backend system.
 | **Database**     | PostgreSQL, **Prisma ORM** (with migrations and a dedicated test database)                  |
 | **API**          | Express.js, RESTful principles, **Swagger/OpenAPI** documentation                           |
 | **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (Google OAuth 2.0)                     |
-| **Security**     | Rate Limiting, **Google ReCaptcha**, Password Hashing (bcrypt), CORS                        |
+| **Security**     | Rate Limiting, **Google ReCaptcha**, Password Hashing (bcrypt), Automated Vulnerability Scanning (`npm audit`) |
 | **Logging**      | **Pino** for structured JSON logging, streamed directly to **AWS CloudWatch** for monitoring. |
 | **Testing**      | **Jest** & **Supertest** for automated integration tests in a fully containerized environment     |
-| **DevOps**       | **Docker**, Multi-stage Dockerfiles, **NGINX**, **GitLab CI/CD**, **AWS EC2**, **Let's Encrypt (TLS)** |
+| **DevOps**       | **Docker**, Multi-stage Dockerfiles, **NGINX**, **GitLab CI/CD**, **AWS EC2**, **Let's Encrypt (TLS)**, **GitLab Pages** |
 
 ---
 
-## 🏛️ A Foundation of Design Principles
+## 🏛️ A Foundation of Professional Design Principles
 
 This project was built with a deep focus on creating a clean, maintainable, and scalable architecture. The design is guided by the fundamental **SOLID** and **GRASP** principles.
 
 -   **SOLID Principles:** Every class is designed for resilience.
     -   **Single Responsibility:** The **CQRS** pattern (`TaskCommands`, `TaskQueries`) ensures each class has one, and only one, reason to change.
+    -   **Dependency Inversion:** **InversifyJS** is used to "invert control," ensuring high-level modules (Controllers) depend on abstractions (interfaces), not on low-level details (Services).
     -   **Open/Closed:** The use of services and interfaces allows for new features to be added without modifying existing, working code.
     -   **Liskov Substitution:** Interfaces (`IUserCommands`) are used to ensure that implementations can be swapped (e.g., for testing) without breaking the application.
     -   **Interface Segregation:** Small, specific interfaces (`ITaskCommands`, `ITaskQueries`) prevent classes from depending on methods they don't use.
-    -   **Dependency Inversion:** **InversifyJS** is used to "invert control," ensuring high-level modules (Controllers) depend on abstractions (interfaces), not on low-level details (Services).
+
 
 -   **GRASP Principles:** Responsibilities are assigned intelligently across the system.
     -   **Information Expert:** Logic resides in the class with the most information to perform it (e.g., `AuthService` handles all authentication logic).
     -   **Low Coupling & High Cohesion:** The combination of **InversifyJS** (for low coupling) and **CQRS** (for high cohesion) results in a system where components are independent and focused.
-    -   **Controller:** Express controllers act as thin, clean entry points that delegate all business logic to the expert services, a core tenet of the GRASP Controller pattern.
+    -   **Controller:** Express controllers act as thin, clean entry points that delegate all business logic to the expert services.
 
 ---
 
-## 🚀 The Automated DevOps Lifecycle
+## 🚀 The Automated DevSecOps Lifecycle
 
-This project is configured with a professional, three-stage GitLab CI/CD pipeline that ensures quality and automates deployment. On every push to the `main` branch, the pipeline automatically:
+This project is configured with a professional, multi-stage GitLab CI/CD pipeline that ensures quality, security, and automates deployment. On every push to the `main` branch, the pipeline automatically:
 
-1.  **🧪 Test:** Spins up a dedicated Docker Compose environment with a fresh PostgreSQL database. It runs the full suite of **Jest/Supertest** integration tests against the API. If any test fails, the pipeline stops immediately.
+1.  **🧪 Test:** Spins up a dedicated Docker Compose environment with a fresh PostgreSQL database. It runs a security scan (`npm audit`) for known vulnerabilities and then executes the full suite of **Jest/Supertest** integration tests. If any test or scan fails, the pipeline stops immediately.
 2.  **📦 Build:**
     -   Builds a lean, multi-stage production **Docker image** for the backend application.
     -   Pushes the tagged image to the **GitLab Container Registry**.
-    -   Clones the frontend repository (using a `CI_JOB_TOKEN` for secure access) and runs its build process to generate static assets.
+    -   Builds the React frontend by cloning its repository using a secure `CI_JOB_TOKEN`.
     -   Bundles all necessary deployment files (`docker-compose.prod.yml`, NGINX config, frontend assets) as artifacts.
 3.  **☁️ Deploy:**
     -   Securely connects to an **AWS EC2** instance via SSH.
     -   Cleans the deployment directory and copies the new artifacts.
-    -   Connects to the GitLab Registry, pulls the new backend image, and gracefully restarts all services using **Docker Compose**.
+    -   Pulls the new backend image from the GitLab Registry and gracefully restarts all services using **Docker Compose**.
     -   All container logs are automatically streamed to **AWS CloudWatch** for centralized, production-grade monitoring.
-    -   The deployment script finishes by running `docker system prune` on the server to maintain a clean environment.
+4.  **📄 Pages:**
+    -   In a parallel job, the pipeline uses **Redocly** to build a professional, static HTML documentation site from the `swagger.yaml` file.
+    -   This site is then automatically deployed and hosted using **GitLab Pages**.
 
 ---
 
