@@ -95,7 +95,7 @@ pages:
         - echo "Installing documentation generator..."
         - npm install -g @redocly/cli
         - echo "Building documentation..."
-        - redocly bundle -o public/index.html swagger.yaml
+        - redocly build-docs swagger.yaml -o public/index.html
     artifacts:
         paths:
             - public
