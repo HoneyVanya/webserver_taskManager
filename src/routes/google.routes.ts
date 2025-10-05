@@ -29,12 +29,12 @@ const GoogleCallbackController = (req: Request, res: Response) => {
 };
 
 router.get(
-    '/auth/google',
+    '/api/auth/google',
     passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
 router.get(
-    '/auth/google/callback',
+    '/api/auth/google/callback',
     passport.authenticate('google', {
         session: false,
         failureRedirect: '/login',

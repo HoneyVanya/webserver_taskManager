@@ -16,7 +16,7 @@ import { ITaskCommands } from '../types/task.commands.interface.js';
 import { ITaskQueries } from '../types/task.queries.interface.js';
 import { AppUser } from '../types/types.js';
 
-@controller('/tasks', protect)
+@controller('/api/tasks', protect)
 export class TaskController {
     private readonly _taskCommands: ITaskCommands;
     private readonly _taskQueries: ITaskQueries;

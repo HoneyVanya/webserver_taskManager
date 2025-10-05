@@ -10,7 +10,7 @@ import { validate } from '../middleware/validate.js';
 import { loginSchema, refreshTokenSchema } from '../schemas/auth.schema.js';
 import { AppUser } from '../types/types.js';
 
-@controller('/auth')
+@controller('/api/auth')
 export class AuthController {
     private readonly _authService: IAuthService;
 
