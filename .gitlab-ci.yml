@@ -45,6 +45,7 @@ build_artifacts:
     artifacts:
         paths:
             - docker-compose.prod.yml
+
             - nginx/
             - frontend-dist/
 
