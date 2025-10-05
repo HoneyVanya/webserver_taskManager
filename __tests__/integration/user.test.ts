@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import express from 'express';
+import { app, prisma } from '../test-setup';
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 
@@ -13,16 +13,6 @@ jest.mock('../../src/config/db.js', () => ({
         },
     }),
 }));
-
-import { InversifyExpressServer } from 'inversify-express-utils';
-import { container } from '../../src/inversify.config';
-import prisma from '../../src/config/db.js';
-
-const app = new InversifyExpressServer(container)
-    .setConfig((app) => {
-        app.use(express.json());
-    })
-    .build();
 
 beforeAll(async () => {
     await prisma.$connect();

@@ -1,8 +1,8 @@
 import 'reflect-metadata';
-import express from 'express';
 import request from 'supertest';
 import { PrismaClient, User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { app, prisma } from '../test-setup';
 
 jest.mock('../../src/config/db.js', () => ({
     __esModule: true,
@@ -14,16 +14,6 @@ jest.mock('../../src/config/db.js', () => ({
         },
     }),
 }));
-
-import { InversifyExpressServer } from 'inversify-express-utils';
-import { container } from '../../src/inversify.config';
-import prisma from '../../src/config/db.js';
-
-const app = new InversifyExpressServer(container)
-    .setConfig((app) => {
-        app.use(express.json());
-    })
-    .build();
 
 let testUser: User;
 let authToken: string;
