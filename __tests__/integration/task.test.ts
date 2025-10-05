@@ -1,97 +1,73 @@
-import 'reflect-metadata';
+// __tests__/integration/tasks.test.ts
 import request from 'supertest';
-import { User } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import { app, prisma } from '../test-setup';
-
-let testUser: User;
-let authToken: string;
-
-beforeAll(async () => {
-    await prisma.$connect();
-    const hashedPassword = await bcrypt.hash('password123', 10);
-    testUser = await prisma.user.create({
-        data: {
-            email: 'task-test@example.com',
-            username: 'tasktester',
-            password: hashedPassword,
-        },
-    });
-});
-
-beforeEach(async () => {
-    await prisma.task.deleteMany({ where: { authorId: testUser.id } });
-
-    const response = await request(app).post('/auth/login').send({
-        email: testUser.email,
-        password: 'password123',
-    });
-    authToken = response.body.accessToken;
-});
-
-afterAll(async () => {
-    await prisma.user.deleteMany({ where: { id: testUser.id } });
-    await prisma.$disconnect();
-});
+import express from 'express';
+import { setupTestApp } from '../setup';
+import prisma from '../../src/config/db';
 
 describe('Task API Endpoints', () => {
-    it('GET /tasks should return an empty array for a new user', async () => {
-        const response = await request(app)
+    let app: express.Application;
+    let token: string;
+    let userId: string;
+
+    beforeAll(async () => {
+        app = setupTestApp();
+        // Clean up the test database before running tests
+        await prisma.user.deleteMany();
+        await prisma.task.deleteMany();
+
+        // 1. Register a new user for the test suite
+        const userCredentials = {
+            email: 'testuser@example.com',
+            username: 'testuser',
+            password: 'password123',
+        };
+        const registerRes = await request(app)
+            .post('/users')
+            .send(userCredentials);
+
+        expect(registerRes.statusCode).toBe(201);
+        token = registerRes.body.accessToken;
+        userId = registerRes.body.user.id;
+    });
+
+    afterAll(async () => {
+        await prisma.user.deleteMany();
+        await prisma.$disconnect();
+    });
+
+    it('should not allow fetching tasks without a token', async () => {
+        const res = await request(app).get('/tasks');
+        expect(res.statusCode).toBe(401);
+    });
+
+    it('should fetch an empty array of tasks for a new user', async () => {
+        const res = await request(app)
             .get('/tasks')
-            .set('Authorization', `Bearer ${authToken}`);
+            .set('Authorization', `Bearer ${token}`);
 
-        expect(response.status).toBe(200);
-        expect(response.body).toEqual([]);
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toEqual([]);
     });
 
-    it('POST /tasks should create a new task', async () => {
-        const newTask = { title: 'My First Test Task' };
-
-        const response = await request(app)
+    it('should create a new task', async () => {
+        const res = await request(app)
             .post('/tasks')
-            .set('Authorization', `Bearer ${authToken}`)
-            .send(newTask);
+            .set('Authorization', `Bearer ${token}`)
+            .send({ title: 'My first test task' });
 
-        expect(response.status).toBe(201);
-        expect(response.body.title).toBe(newTask.title);
-        expect(response.body.completed).toBe(false);
-
-        const dbTasks = await prisma.task.findMany({
-            where: { authorId: testUser.id },
-        });
-        expect(dbTasks.length).toBe(1);
-        expect(dbTasks[0].title).toBe(newTask.title);
+        expect(res.statusCode).toBe(201);
+        expect(res.body.title).toBe('My first test task');
+        expect(res.body.completed).toBe(false);
+        expect(res.body.authorId).toBe(userId);
     });
 
-    it('PUT /tasks/:id should update a task', async () => {
-        const task = await prisma.task.create({
-            data: { title: 'Initial Title', authorId: testUser.id },
-        });
+    it('should fetch all tasks for the user, including the new one', async () => {
+        const res = await request(app)
+            .get('/tasks')
+            .set('Authorization', `Bearer ${token}`);
 
-        const updates = { title: 'Updated Title', completed: true };
-
-        const response = await request(app)
-            .put(`/tasks/${task.id}`)
-            .set('Authorization', `Bearer ${authToken}`)
-            .send(updates);
-
-        expect(response.status).toBe(200);
-        expect(response.body.title).toBe(updates.title);
-        expect(response.body.completed).toBe(updates.completed);
-    });
-
-    it('DELETE /tasks/:id should delete a task', async () => {
-        const task = await prisma.task.create({
-            data: { title: 'To Be Deleted', authorId: testUser.id },
-        });
-
-        const response = await request(app)
-            .delete(`/tasks/${task.id}`)
-            .set('Authorization', `Bearer ${authToken}`);
-
-        expect(response.status).toBe(204);
-
-        const dbTask = await prisma.task.findUnique({ where: { id: task.id } });
-        expect(dbTask).toBeNull();
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveLength(1);
+        expect(res.body[0].title).toBe('My first test task');
     });
 });

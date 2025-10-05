@@ -1,5 +1,8 @@
 import 'reflect-metadata';
 import { InversifyExpressServer } from 'inversify-express-utils';
+import './controllers/auth.controller.js';
+import './controllers/task.controller.js';
+import './controllers/user.controller.js';
 import { container } from './inversify.config.js';
 import express from 'express';
 import cors from 'cors';

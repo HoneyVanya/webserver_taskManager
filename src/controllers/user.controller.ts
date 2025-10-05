@@ -15,7 +15,7 @@ import { validate } from '../middleware/validate.js';
 import { updateUserSchema, createUserSchema } from '../schemas/user.schema.js';
 import { recapchaOrSkip } from '../middleware/recaptcha.js';
 
-@controller('/api/users')
+@controller('/users')
 export class UserController {
     private readonly _userCommands: IUserCommands;
     private readonly _userQueries: IUserQueries;
