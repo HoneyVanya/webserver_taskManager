@@ -42,6 +42,8 @@ build_artifacts:
         - git clone "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/taskmanager-group/taskmanager_frontend.git" ../frontend
         - docker run --rm -v "$(pwd)/../frontend:/app" -w /app node:22 sh -c "npm ci && npm run build"
         - mv ../frontend/dist ./frontend-dist
+        - echo "Checking artifact sizes..."
+        - du -sh docker-compose.prod.yml nginx/ frontend-dist/
     artifacts:
         paths:
             - docker-compose.prod.yml
