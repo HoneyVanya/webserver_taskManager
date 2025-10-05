@@ -15,9 +15,9 @@ import { userQueries } from './services/user.queries.js';
 import { IAuthService } from './types/auth.types.js';
 import { AuthService } from './services/auth.service.js';
 
-import { TaskController } from './controllers/task.controller.js';
-import { UserController } from './controllers/user.controller.js';
-import { AuthController } from './controllers/auth.controller.js';
+import './controllers/task.controller.js';
+import './controllers/user.controller.js';
+import './controllers/auth.controller.js';
 
 const container = new Container();
 
