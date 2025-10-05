@@ -1,18 +1,6 @@
 import 'reflect-metadata';
 import { app, prisma } from '../test-setup';
 import request from 'supertest';
-import { PrismaClient } from '@prisma/client';
-
-jest.mock('../../src/config/db.js', () => ({
-    __esModule: true,
-    default: new PrismaClient({
-        datasources: {
-            db: {
-                url: process.env.DATABASE_URL_TEST,
-            },
-        },
-    }),
-}));
 
 beforeAll(async () => {
     await prisma.$connect();

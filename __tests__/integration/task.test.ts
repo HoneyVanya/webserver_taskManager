@@ -1,19 +1,8 @@
 import 'reflect-metadata';
 import request from 'supertest';
-import { PrismaClient, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { app, prisma } from '../test-setup';
-
-jest.mock('../../src/config/db.js', () => ({
-    __esModule: true,
-    default: new PrismaClient({
-        datasources: {
-            db: {
-                url: process.env.DATABASE_URL_TEST,
-            },
-        },
-    }),
-}));
 
 let testUser: User;
 let authToken: string;
