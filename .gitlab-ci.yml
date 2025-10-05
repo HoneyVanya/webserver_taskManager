@@ -45,12 +45,10 @@ build:
         - git clone "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/taskmanager-group/taskmanager_frontend.git" ../frontend
         - docker run --rm -v "$(pwd)/../frontend:/app" -w /app node:22 sh -c "npm ci && npm run build"
         - mv ../frontend/dist ./frontend-dist
-    artifacts:
-        paths:
-            - docker-compose.prod.yml
-            - nginx/
-            - frontend-dist/
-        expire_in: 1 hour
+
+        - echo "Building and pushing NGINX image..."
+        - docker build -f nginx/Dockerfile -t ${CI_REGISTRY_IMAGE}/nginx:latest .
+        - docker push ${CI_REGISTRY_IMAGE}/nginx:latest
 
 deploy:
     stage: deploy
@@ -58,29 +56,23 @@ deploy:
     needs:
         - build
     before_script:
-        - apk add --no-cache openssh-client rsync
+        - apk add --no-cache openssh-client
         - echo "$SSH_PRIVATE_KEY" | base64 -d > deploy_key.pem
         - chmod 600 deploy_key.pem
         - mkdir -p ~/.ssh && chmod 700 ~/.ssh
         - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts
     script:
-        - echo "Deploying all artifacts to server..."
+        - echo "Deploying services to server..."
         - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
-
-        - ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "rm -rf ~/taskmanager-prod && mkdir -p ~/taskmanager-prod"
-        - rsync -avz -e "ssh $SSH_OPTIONS" ./docker-compose.prod.yml ./nginx ./frontend-dist ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/
 
         - |
             ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
-              set -e # Exit immediately if a command exits with a non-zero status.
-              cd ~/taskmanager-prod
+              set -e
+              mkdir -p ~/taskmanager-prod && cd ~/taskmanager-prod
               
-              echo '==> Renaming compose file...'
-              mv docker-compose.prod.yml docker-compose.yml
-              
-              echo '==> Logging into GitLab Registry...'
-              docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${CI_REGISTRY}
-              
+              echo '==> Writing docker-compose.yml on server...'
+              echo '${DOCKER_COMPOSE_PROD_CONTENT}' > docker-compose.yml
+
               echo '==> Creating .env file on server...'
               echo 'DATABASE_URL=postgresql://myuser:mypassword@db:5432/taskmanager' > .env
               echo 'PORT=3000' >> .env
@@ -94,9 +86,12 @@ deploy:
               echo 'GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}' >> .env
               echo 'FRONTEND_URL=${FRONTEND_URL}' >> .env
               echo 'NODE_ENV=production' >> .env
-
-              echo '==> Pulling the latest backend image...'
-              docker compose pull app
+              
+              echo '==> Logging into GitLab Registry...'
+              docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${CI_REGISTRY}
+              
+              echo '==> Pulling the latest images...'
+              docker compose pull
               
               echo '==> Running database migrations...'
               docker compose run --rm app npx prisma migrate deploy
@@ -109,16 +104,52 @@ deploy:
 
               echo '==> Deployment successful!'
             "
+    variables:
+        DOCKER_COMPOSE_PROD_CONTENT: |
+            services:
+              app:
+                image: ${CI_REGISTRY_IMAGE}:latest
+                restart: always
+                env_file: [".env"]
+                depends_on:
+                  db: { condition: service_started }
+                healthcheck:
+                  test: ["CMD", "curl", "-f", "http://localhost:3000/healthz"]
+                  interval: 10s
+                  timeout: 5s
+                  retries: 5
+                  start_period: 30s
+              nginx:
+                image: ${CI_REGISTRY_IMAGE}/nginx:latest
+                restart: always
+                ports: ["80:80", "443:443"]
+                volumes: ["/etc/letsencrypt:/etc/letsencrypt:ro", "/var/www/html:/var/www/html"]
+                depends_on:
+                  app: { condition: service_healthy }
+              db:
+                image: postgres:14.1-alpine
+                restart: always
+                environment:
+                  POSTGRES_USER: myuser
+                  POSTGRES_PASSWORD: mypassword
+                  POSTGRES_DB: taskmanager
+                volumes: ["db_data:/var/lib/postgresql/data"]
+              certbot:
+                image: certbot/certbot
+                volumes: ["/etc/letsencrypt:/etc/letsencrypt", "/var/www/html:/var/www/html"]
+            volumes:
+              db_data: {}
     rules:
         - if: $CI_COMMIT_BRANCH == 'main'
 
 pages:
     stage: pages
     image: node:22-alpine
+    needs: []
     script:
         - echo "Installing Redocly CLI..."
         - npm install -g @redocly/cli
-        - echo "Building documentation..."
+        - echo "Building documentation from swagger.yaml..."
         - redocly build-docs swagger.yaml -o public/index.html
     artifacts:
         paths:
