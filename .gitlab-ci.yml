@@ -151,6 +151,8 @@ pages:
         - npm install -g @redocly/cli
         - echo "Building documentation from swagger.yaml..."
         - redocly build-docs swagger.yaml -o public/index.html
+        - echo "--- Listing contents of public directory for debugging ---"
+        - ls -laR public
     artifacts:
         paths:
             - public
