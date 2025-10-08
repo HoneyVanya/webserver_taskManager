@@ -1,4 +1,3 @@
-// __tests__/integration/tasks.test.ts
 import request from 'supertest';
 import express from 'express';
 import { setupTestApp } from '../setup';
@@ -11,11 +10,9 @@ describe('Task API Endpoints', () => {
 
     beforeAll(async () => {
         app = setupTestApp();
-        // Clean up the test database before running tests
         await prisma.user.deleteMany();
         await prisma.task.deleteMany();
 
-        // 1. Register a new user for the test suite
         const userCredentials = {
             email: 'testuser@example.com',
             username: 'testuser',
