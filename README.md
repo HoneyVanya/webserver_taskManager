@@ -5,7 +5,7 @@
 
 This repository contains the backend service for a full-stack Task Manager application, architected from the ground up as a production-ready, resilient, and fully automated system.
 
-**[View the Live Demo](https://tasks.webservertaskmanager.com)** | **[View the Live API Documentation](https://taskmanager-group.gitlab.io/webserver_taskmanager/)** | **[Frontend Repository](https://gitlab.com/taskmanager-group/taskmanager_frontend)**
+**[Live Demo](https://tasks.webservertaskmanager.com)** | **[Static API Docs](https://taskmanager-group.gitlab.io/webserver_taskmanager/)** | **[Interactive API Explorer](https://tasks.webservertaskmanager.com/docs)**
 
 ---
 
