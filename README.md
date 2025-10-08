@@ -1,85 +1,64 @@
 # Task Manager API
 
-![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white) ![Node.JS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white) ![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB) ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) ![Prisma](https://img.shields.io/badge/Prisma-%232D3748.svg?style=for-the-badge&logo=Prisma&logoColor=white) ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) ![GitLab CI](https://img.shields.io/badge/gitlab%20ci-%23181717.svg?style=for-the-badge&logo=gitlab&logoColor=white) ![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
 
-This repository contains the backend service for a full-stack Task Manager application. It was architected from the ground up to be a production-ready, resilient, and fully automated system, demonstrating modern software engineering principles from architecture to deployment.
+[![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Node.JS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/) [![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)](https://expressjs.com/) [![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Prisma](https://img.shields.io/badge/Prisma-%232D3748.svg?style=for-the-badge&logo=Prisma&logoColor=white)](https://www.prisma.io/) [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/) [![GitLab CI](https://img.shields.io/badge/gitlab%20ci-%23181717.svg?style=for-the-badge&logo=gitlab&logoColor=white)](https://docs.gitlab.com/ee/ci/) [![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
 
-**[View the Live Demo](https://tasks.webservertaskmanager.com)**
-**[View the Live API Documentation](https://taskmanager-group.gitlab.io/webserver_taskmanager/)**
+This repository contains the backend service for a full-stack Task Manager application, architected from the ground up as a production-ready, resilient, and fully automated system.
 
-The official client for this API is the [**Task Manager Frontend Repository**](https://gitlab.com/taskmanager-group/taskmanager_frontend).
+**[View the Live Demo](https://tasks.webservertaskmanager.com)** | **[View the Live API Documentation](https://taskmanager-group.gitlab.io/webserver_taskmanager/)** | **[Frontend Repository](https://gitlab.com/taskmanager-group/taskmanager_frontend)**
 
 ---
 
-## ✨ Core Features & Technical Pillars
+## ✨ Technical Highlights
 
-This project is a showcase of a robust, modern backend system.
+This project showcases a robust, modern backend system built on professional design principles and a fully automated DevOps lifecycle.
 
-| Category         | Technology / Feature                                                                        |
-| ---------------- | ------------------------------------------------------------------------------------------- |
-| **Architecture** | **SOLID** & **GRASP** Principles, **InversifyJS** (IoC), **CQRS**                             |
-| **Database**     | PostgreSQL, **Prisma ORM** (with migrations and a dedicated test database)                  |
-| **API**          | Express.js, RESTful principles, **Swagger/OpenAPI** documentation                           |
-| **Authentication** | JWT (**Access & Refresh Tokens**), **Passport.js** (Google OAuth 2.0)                     |
-| **Security**     | Rate Limiting, **Google ReCaptcha**, Password Hashing (bcrypt), Automated Vulnerability Scanning (`npm audit`) |
-| **Logging**      | **Pino** for structured JSON logging, streamed directly to **AWS CloudWatch** for monitoring. |
-| **Testing**      | **Jest** & **Supertest** for automated integration tests in a fully containerized environment     |
-| **DevOps**       | **Docker**, Multi-stage Dockerfiles, **NGINX**, **GitLab CI/CD**, **AWS EC2**, **Let's Encrypt (TLS)**, **GitLab Pages** |
+| Skill Category         | Technology / Principle Demonstrated                                        |
+| ---------------------- | -------------------------------------------------------------------------- |
+| **Architecture** | SOLID, Dependency Injection (InversifyJS), CQRS (Command/Query Separation) |
+| **API & Database** | RESTful API (Express.js), ORM (Prisma), PostgreSQL, Database Migrations    |
+| **Authentication** | JWT (Access/Refresh Tokens), OAuth 2.0 (Passport.js), Password Hashing (bcrypt)|
+| **Testing** | Integration Testing (Jest, Supertest), Isolated Test Database (Docker)     |
+| **DevOps & Cloud** | **Full CI/CD Pipeline (GitLab CI)**, Containerization (**Docker**), NGINX, **AWS EC2** |
+| **Production Readiness**| Structured Logging (Pino), Rate Limiting, TLS/SSL (Let's Encrypt), ReCaptcha |
 
 ---
 
-## 🏛️ A Foundation of Professional Design Principles
+## 🏛️ Architectural Deep Dive
 
-This project was built with a deep focus on creating a clean, maintainable, and scalable architecture. The design is guided by the fundamental **SOLID** and **GRASP** principles.
+The system's design is guided by fundamental **SOLID** and **GRASP** principles to create a clean, maintainable, and scalable architecture.
 
--   **SOLID Principles:** Every class is designed for resilience.
-    -   **Single Responsibility:** The **CQRS** pattern (`TaskCommands`, `TaskQueries`) ensures each class has one, and only one, reason to change.
-    -   **Dependency Inversion:** **InversifyJS** is used to "invert control," ensuring high-level modules (Controllers) depend on abstractions (interfaces), not on low-level details (Services).
-    -   **Open/Closed:** The use of services and interfaces allows for new features to be added without modifying existing, working code.
-    -   **Liskov Substitution:** Interfaces (`IUserCommands`) are used to ensure that implementations can be swapped (e.g., for testing) without breaking the application.
-    -   **Interface Segregation:** Small, specific interfaces (`ITaskCommands`, `ITaskQueries`) prevent classes from depending on methods they don't use.
-
-
--   **GRASP Principles:** Responsibilities are assigned intelligently across the system.
-    -   **Information Expert:** Logic resides in the class with the most information to perform it (e.g., `AuthService` handles all authentication logic).
-    -   **Low Coupling & High Cohesion:** The combination of **InversifyJS** (for low coupling) and **CQRS** (for high cohesion) results in a system where components are independent and focused.
-    -   **Controller:** Express controllers act as thin, clean entry points that delegate all business logic to the expert services.
+-   **Dependency Inversion & Low Coupling:** **InversifyJS** is used to "invert control," ensuring high-level modules (Controllers) depend on abstractions (interfaces like `ITaskCommands`), not on low-level concrete implementations. This makes the system modular and easy to test.
+-   **Single Responsibility & High Cohesion:** The **CQRS** pattern is applied by separating logic into `Commands` (for writing/mutating data, e.g., `createTask`) and `Queries` (for reading data, e.g., `findAllTasksForUser`). This ensures each class has a single, focused purpose.
+-   **Controller:** Express controllers, built with `inversify-express-utils`, act as thin, clean entry points that delegate all business logic to the expert services, keeping them free of application logic.
 
 ---
 
 ## 🚀 The Automated DevSecOps Lifecycle
 
-This project is configured with a professional, multi-stage GitLab CI/CD pipeline that ensures quality, security, and automates deployment. On every push to the `main` branch, the pipeline automatically:
+This project is configured with a professional, multi-stage GitLab CI/CD pipeline that automates quality assurance, security scanning, and deployment. On every push to `main`, the pipeline automatically:
 
-1.  **🧪 Test:** Spins up a dedicated Docker Compose environment with a fresh PostgreSQL database. It runs a security scan (`npm audit`) for known vulnerabilities and then executes the full suite of **Jest/Supertest** integration tests. If any test or scan fails, the pipeline stops immediately.
+1.  **🧪 Test:** Spins up a dedicated Docker Compose environment with a fresh PostgreSQL database. It runs a security scan (`npm audit`) and executes the full suite of **Jest/Supertest** integration tests.
 2.  **📦 Build:**
-    -   Builds a lean, multi-stage production **Docker image** for the backend application.
-    -   Pushes the tagged image to the **GitLab Container Registry**.
-    -   Builds the React frontend by cloning its repository using a secure `CI_JOB_TOKEN`.
-    -   Bundles all necessary deployment files (`docker-compose.prod.yml`, NGINX config, frontend assets) as artifacts.
+    -   Builds and pushes a lean, multi-stage production Docker image for the backend to the GitLab Container Registry.
+    -   Clones the frontend repository, builds the static assets, and bakes them into a custom, hardened NGINX Docker image.
 3.  **☁️ Deploy:**
     -   Securely connects to an **AWS EC2** instance via SSH.
-    -   Cleans the deployment directory and copies the new artifacts.
-    -   Pulls the new backend image from the GitLab Registry and gracefully restarts all services using **Docker Compose**.
-    -   All container logs are automatically streamed to **AWS CloudWatch** for centralized, production-grade monitoring.
+    -   Pulls the new backend and NGINX images from the GitLab Registry and gracefully restarts all services using **Docker Compose**.
 4.  **📄 Pages:**
-    -   In a parallel job, the pipeline uses **Redocly** to build a professional, static HTML documentation site from the `swagger.yaml` file.
-    -   This site is then automatically deployed and hosted using **GitLab Pages**.
+    -   In a parallel job, **Redocly** builds a professional, static HTML documentation site from the `swagger.yaml` file and deploys it using **GitLab Pages**.
 
 ---
 
-## 🛠️ Getting Started
+## 🛠️ Getting Started Locally
 
 ### Prerequisites
-
--   [Node.js](https://nodejs.org/en/) (v22 or newer recommended)
+-   [Node.js](https://nodejs.org/en/) (v22+)
 -   [Docker](https://www.docker.com/products/docker-desktop/) and Docker Compose
-
-### 1. Local Development Setup
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://gitlab.com/taskmanager-group/webserver_taskmanager.git
+    git clone [https://gitlab.com/taskmanager-group/webserver_taskmanager.git](https://gitlab.com/taskmanager-group/webserver_taskmanager.git)
     cd webserver_taskmanager
     ```
 2.  **Environment Variables:**
@@ -87,23 +66,10 @@ This project is configured with a professional, multi-stage GitLab CI/CD pipelin
     ```bash
     cp .env.example .env
     ```
-3.  **Install Dependencies:**
-    ```bash
-    npm install
-    ```
-4.  **Start the Database Container:**
-    ```bash
-    docker compose up -d db
-    ```
-5.  **Apply Migrations:**
-    ```bash
-    npx prisma migrate dev
-    ```
-6.  **Run the Development Server:**
-    The server supports hot-reloading with `tsx`.
-    ```bash
-    npm run dev
-    ```
+3.  **Install Dependencies:** `npm install`
+4.  **Start the Database:** `docker-compose up -d db`
+5.  **Apply Migrations:** `npx prisma migrate dev`
+6.  **Run the Dev Server:** `npm run dev` (with hot-reloading)
 
 ### 2. Running the Test Suite
 
