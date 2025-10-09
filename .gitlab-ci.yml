@@ -1,78 +1,28 @@
-stages:
-    - test
-    - build
-    - deploy
-    - pages
-
-test:
-    stage: test
-    image: docker:20.10.16
-    services:
-        - name: docker:20.10.16-dind
-          alias: docker
-    variables:
-        DOCKER_HOST: tcp://docker:2375
-    before_script:
-        - apk add --no-cache docker-compose
-    script:
-        - echo "Running security scan for known vulnerabilities..."
-        - docker build --target deps -t deps-image .
-        - docker run --rm deps-image npm audit --audit-level=high
-
-        - echo "Running backend integration tests..."
-        - docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
-        - echo "Tests passed!"
-
-build:
-    stage: build
-    image: docker:20.10.16
-    services:
-        - name: docker:20.10.16-dind
-          alias: docker
-    variables:
-        DOCKER_HOST: tcp://docker:2375
-    needs:
-        - test
-    before_script:
-        - echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USER --password-stdin $CI_REGISTRY
-    script:
-        - echo "Building and pushing backend image..."
-        - docker build --target runner -t ${CI_REGISTRY_IMAGE}:latest .
-        - docker push ${CI_REGISTRY_IMAGE}:latest
-
-        - echo "Building frontend..."
-        - apk add --no-cache git
-        - git clone "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/taskmanager-group/taskmanager_frontend.git" ../frontend
-        - docker run --rm -v "$(pwd)/../frontend:/app" -w /app node:22 sh -c "npm ci && npm run build"
-        - mv ../frontend/dist ./frontend-dist
-
-        - echo "Building and pushing NGINX image..."
-        - docker build -f nginx/Dockerfile -t ${CI_REGISTRY_IMAGE}/nginx:latest .
-        - docker push ${CI_REGISTRY_IMAGE}/nginx:latest
-
 deploy:
     stage: deploy
     image: alpine:latest
     needs:
         - build
     before_script:
-        - apk add --no-cache openssh-client
+        - apk add --no-cache openssh-client rsync sed
         - echo "$SSH_PRIVATE_KEY" | base64 -d > deploy_key.pem
         - chmod 600 deploy_key.pem
         - mkdir -p ~/.ssh && chmod 700 ~/.ssh
         - ssh-keyscan $SSH_SERVER_IP >> ~/.ssh/known_hosts
     script:
+        - echo "Preparing docker-compose file for deployment..."
+        - sed -i "s|__IMAGE_TAG__|${CI_COMMIT_SHORT_SHA}|g" docker-compose.prod.yml
+
         - echo "Deploying services to server..."
         - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
+
+        - rsync -e "ssh $SSH_OPTIONS" docker-compose.prod.yml ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/docker-compose.yml
 
         - |
             ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
               set -e
-              mkdir -p ~/taskmanager-prod && cd ~/taskmanager-prod
+              cd ~/taskmanager-prod
               
-              echo '==> Writing docker-compose.yml on server...'
-              echo '${DOCKER_COMPOSE_PROD_CONTENT}' > docker-compose.yml
-
               echo '==> Creating .env file on server...'
               echo 'DATABASE_URL=postgresql://myuser:mypassword@db:5432/taskmanager' > .env
               echo 'PORT=3000' >> .env
@@ -90,7 +40,7 @@ deploy:
               echo '==> Logging into GitLab Registry...'
               docker login -u ${REGISTRY_USER} -p ${REGISTRY_PASSWORD} ${CI_REGISTRY}
               
-              echo '==> Pulling the latest images...'
+              echo '==> Pulling the latest tagged images...'
               docker compose pull
               
               echo '==> Running database migrations...'
@@ -104,57 +54,5 @@ deploy:
 
               echo '==> Deployment successful!'
             "
-    variables:
-        DOCKER_COMPOSE_PROD_CONTENT: |
-            services:
-              app:
-                image: ${CI_REGISTRY_IMAGE}:latest
-                restart: always
-                env_file: [".env"]
-                depends_on:
-                  db: { condition: service_started }
-                healthcheck:
-                  test: ["CMD", "curl", "-f", "http://localhost:3000/healthz"]
-                  interval: 10s
-                  timeout: 5s
-                  retries: 5
-                  start_period: 30s
-              nginx:
-                image: ${CI_REGISTRY_IMAGE}/nginx:latest
-                restart: always
-                ports: ["80:80", "443:443"]
-                volumes: ["/etc/letsencrypt:/etc/letsencrypt:ro", "/var/www/html:/var/www/html"]
-                depends_on:
-                  app: { condition: service_healthy }
-              db:
-                image: postgres:14.1-alpine
-                restart: always
-                environment:
-                  POSTGRES_USER: myuser
-                  POSTGRES_PASSWORD: mypassword
-                  POSTGRES_DB: taskmanager
-                volumes: ["db_data:/var/lib/postgresql/data"]
-              certbot:
-                image: certbot/certbot
-                volumes: ["/etc/letsencrypt:/etc/letsencrypt", "/var/www/html:/var/www/html"]
-            volumes:
-              db_data: {}
-    rules:
-        - if: $CI_COMMIT_BRANCH == 'main'
-
-pages:
-    stage: pages
-    image: node:22-alpine
-    needs: []
-    script:
-        - echo "Installing Redocly CLI..."
-        - npm install -g @redocly/cli
-        - echo "Building documentation from swagger.yaml..."
-        - redocly build-docs swagger.yaml -o public/index.html
-        - echo "--- Listing contents of public directory for debugging ---"
-        - ls -laR public
-    artifacts:
-        paths:
-            - public
     rules:
         - if: $CI_COMMIT_BRANCH == 'main'

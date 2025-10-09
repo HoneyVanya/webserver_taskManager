@@ -1,5 +1,7 @@
 
 FROM node:22-alpine AS deps
+ARG GIT_COMMIT_SHA
+ENV GIT_COMMIT_SHA=$GIT_COMMIT_SHA
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY prisma ./prisma

@@ -23,6 +23,11 @@ server.setConfig((app) => {
     app.get('/healthz', (_req, res) => {
         res.status(200).send('OK');
     });
+    app.get('/version', (_req, res) => {
+        res.json({
+            version: process.env.GIT_COMMIT_SHA || 'unknown',
+        });
+    });
     app.use(pinoHttp({ logger }));
     app.use(passport.initialize());
     const corsOptions = {
