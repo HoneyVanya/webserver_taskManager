@@ -6,12 +6,11 @@ import {
     type CreateUserResponse,
     type UserCreateData,
     IUserCommands,
-    type PublicUser,
     type UserUpdateData,
 } from '../types/user.commands.interface.js';
 import bcrypt from 'bcryptjs';
 import { IAuthService } from '../types/auth.types.js';
-import { TYPES } from '../types/types.js';
+import { TYPES, AppUser } from '../types/types.js';
 
 @injectable()
 export class userCommands implements IUserCommands {
@@ -39,7 +38,7 @@ export class userCommands implements IUserCommands {
     public async updateUser(
         id: string,
         data: UserUpdateData
-    ): Promise<PublicUser> {
+    ): Promise<AppUser> {
         return prisma.user.update({ where: { id }, data });
     }
     public async deleteUser(id: string): Promise<User> {

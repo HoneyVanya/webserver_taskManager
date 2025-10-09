@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
 import passport from 'passport';
 import { env } from '../config/env.js';
-import { AppUser } from '../types/types.js';
 import { container } from '../inversify.config.js';
-import { TYPES } from '../types/types.js';
+import { TYPES, AppUser } from '../types/types.js';
 import { IAuthService } from '../types/auth.types.js';
 
 const router = Router();

@@ -11,7 +11,7 @@ export type CreateUserResponse = {
 };
 
 export interface IUserCommands {
-    createUser(data: any): Promise<CreateUserResponse>;
+    createUser(data: UserCreateData): Promise<CreateUserResponse>;
     updateUser(id: string, data: UserUpdateData): Promise<AppUser>;
     deleteUser(id: string): Promise<User>;
 }

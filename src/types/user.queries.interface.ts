@@ -1,5 +1,5 @@
-import { PublicUser } from './user.commands.interface.js';
+import { AppUser } from './types';
 
 export interface IUserQueries {
-    findAllUsers(): Promise<PublicUser[]>;
+    findAllUsers(): Promise<AppUser[]>;
 }
