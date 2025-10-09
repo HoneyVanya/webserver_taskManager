@@ -18,7 +18,6 @@ test:
         - echo "Running security scan for known vulnerabilities..."
         - docker build --target deps -t deps-image .
         - docker run --rm deps-image npm audit --audit-level=high
-
         - echo "Running backend integration tests..."
         - docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
         - echo "Tests passed!"
@@ -68,12 +67,9 @@ deploy:
     script:
         - echo "Preparing docker-compose file for deployment..."
         - sed -i "s|__IMAGE_TAG__|${CI_COMMIT_SHORT_SHA}|g" docker-compose.prod.yml
-
         - echo "Deploying services to server..."
         - export SSH_OPTIONS="-i deploy_key.pem -o StrictHostKeyChecking=no"
-
         - rsync -e "ssh $SSH_OPTIONS" docker-compose.prod.yml ${SSH_USER}@${SSH_SERVER_IP}:~/taskmanager-prod/docker-compose.yml
-
         - |
             ssh $SSH_OPTIONS ${SSH_USER}@${SSH_SERVER_IP} "
               set -e
@@ -110,5 +106,20 @@ deploy:
 
               echo '==> Deployment successful!'
             "
+    rules:
+        - if: $CI_COMMIT_BRANCH == 'main'
+
+pages:
+    stage: pages
+    image: node:22-alpine
+    needs: []
+    script:
+        - echo "Installing Redocly CLI..."
+        - npm install -g @redocly/cli
+        - echo "Building documentation from swagger.yaml..."
+        - redocly build-docs swagger.yaml -o public/index.html
+    artifacts:
+        paths:
+            - public
     rules:
         - if: $CI_COMMIT_BRANCH == 'main'
