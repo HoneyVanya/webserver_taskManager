@@ -2,14 +2,14 @@ import prisma from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env.js';
-import { User } from '@prisma/client';
 import { injectable } from 'inversify';
 import 'reflect-metadata';
 import { IAuthService } from '../types/auth.types.js';
+import { AppUser } from '../types/types.js';
 
 @injectable()
 export class AuthService implements IAuthService {
-    public async generateTokens(user: User) {
+    public async generateTokens(user: AppUser) {
         const accessTokenOptions: SignOptions = {
             expiresIn: env.JWT_ACCESS_EXPIRATION as SignOptions['expiresIn'],
         };

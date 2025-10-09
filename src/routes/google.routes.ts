@@ -1,31 +1,35 @@
 import { Router, Request, Response } from 'express';
 import passport from 'passport';
-import jwt, { SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { AppUser } from '../types/types.js';
+import { container } from '../inversify.config.js';
+import { TYPES } from '../types/types.js';
+import { IAuthService } from '../types/auth.types.js';
 
 const router = Router();
 
-const GoogleCallbackController = (req: Request, res: Response) => {
+const GoogleCallbackController = async (req: Request, res: Response) => {
     if (!req.user) {
         return res.redirect(`${env.FRONTEND_URL}/login?error=auth_failed`);
     }
     const user = req.user as AppUser;
-    const payload = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-    };
-    const accessTokenOptions: SignOptions = {
-        expiresIn: env.JWT_ACCESS_EXPIRATION as SignOptions['expiresIn'],
-    };
-    const accessToken = jwt.sign(
-        payload,
-        env.JWT_ACCESS_SECRET,
-        accessTokenOptions
-    );
 
-    res.redirect(`${env.FRONTEND_URL}?token=${accessToken}`);
+    try {
+        const authService = container.get<IAuthService>(TYPES.AuthService);
+
+        const { accessToken, refreshToken } = await authService.generateTokens(
+            user
+        );
+
+        await authService.saveRefreshToken(user.id, refreshToken);
+
+        res.redirect(
+            `${env.FRONTEND_URL}?token=${accessToken}&refreshToken=${refreshToken}`
+        );
+    } catch (error) {
+        console.error('Error during Google callback token generation:', error);
+        res.redirect(`${env.FRONTEND_URL}/login?error=token_generation_failed`);
+    }
 };
 
 router.get(
