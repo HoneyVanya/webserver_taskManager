@@ -10,7 +10,7 @@
         "lint": "eslint . --ext .ts",
         "format": "prettier --write .",
         "check-types": "tsc --noEmit",
-        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
     },
     "repository": {
         "type": "git",
