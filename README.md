@@ -59,7 +59,7 @@ This project is configured with a professional, multi-stage GitLab CI/CD pipelin
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://gitlab.com/taskmanager-group/webserver_taskmanager.git](https://gitlab.com/taskmanager-group/webserver_taskmanager.git)
+    git clone https://gitlab.com/taskmanager-group/webserver_taskmanager.git
     cd webserver_taskmanager
     ```
 2.  **Environment Variables:**
