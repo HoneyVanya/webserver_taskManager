@@ -20,6 +20,14 @@ export const errorHandler: ErrorRequestHandler = (
         return;
     }
 
+    if (res.statusCode >= 400 && res.statusCode < 500) {
+        res.json({
+            error: err.name || 'Client Error',
+            message: err.message,
+        });
+        return;
+    }
+
     if (err instanceof ZodError) {
         res.status(400).json({
             error: 'Validation failed',

@@ -16,6 +16,7 @@ import googleRoutes from './routes/google.routes.js';
 import swaggetUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
+import { requestTimer } from './middleware/requestTimer.js';
 
 const server = new InversifyExpressServer(container);
 
@@ -38,6 +39,7 @@ server.setConfig((app) => {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
         credentials: true,
     };
+    app.use(requestTimer);
     app.use(cors(corsOptions));
     app.use(express.json());
     app.use(googleRoutes);

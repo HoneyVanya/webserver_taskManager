@@ -15,6 +15,7 @@ import { updateTaskSchema, createTaskSchema } from '../schemas/task.schema.js';
 import { ITaskCommands } from '../types/task.commands.interface.js';
 import { ITaskQueries } from '../types/task.queries.interface.js';
 import { AppUser } from '../types/types.js';
+import { checkTaskOwnership } from '../middleware/taskOwnership.js';
 
 @controller('/tasks', protect)
 export class TaskController {
@@ -46,7 +47,7 @@ export class TaskController {
         return res.status(201).json(newTask);
     }
 
-    @httpPut('/:id', validate(updateTaskSchema))
+    @httpPut('/:id', checkTaskOwnership, validate(updateTaskSchema))
     public async updateTask(req: Request, res: Response) {
         const { id } = req.params;
         const user = req.user as AppUser;
@@ -58,7 +59,7 @@ export class TaskController {
         return res.json(updateTask);
     }
 
-    @httpDelete('/:id')
+    @httpDelete('/:id', checkTaskOwnership)
     public async deleteTask(req: Request, res: Response) {
         const { id } = req.params;
         const user = req.user as AppUser;

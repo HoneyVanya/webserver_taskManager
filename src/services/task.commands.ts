@@ -14,15 +14,15 @@ export class taskCommands implements ITaskCommands {
     }
     public async updateTask(
         taskId: string,
-        userId: string,
+        _userId: string,
         data: TaskUpdateData
     ): Promise<Task> {
         return prisma.task.update({
-            where: { id: taskId, authorId: userId },
+            where: { id: taskId },
             data,
         });
     }
-    public async deleteTask(userId: string, taskId: string): Promise<Task> {
-        return prisma.task.delete({ where: { id: taskId, authorId: userId } });
+    public async deleteTask(_userId: string, taskId: string): Promise<Task> {
+        return prisma.task.delete({ where: { id: taskId } });
     }
 }
