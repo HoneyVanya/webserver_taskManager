@@ -24,10 +24,25 @@ import { AuthService } from './services/auth.service.js';
 
 const container = new Container();
 
-container.bind<ITaskCommands>(TYPES.TaskCommands).to(taskCommands);
-container.bind<ITaskQueries>(TYPES.TaskQueries).to(taskQueries);
-container.bind<IUserCommands>(TYPES.UserCommands).to(userCommands);
-container.bind<IUserQueries>(TYPES.UserQueries).to(userQueries);
-container.bind<IAuthService>(TYPES.AuthService).to(AuthService);
+container
+    .bind<ITaskCommands>(TYPES.TaskCommands)
+    .to(taskCommands)
+    .inSingletonScope();
+container
+    .bind<ITaskQueries>(TYPES.TaskQueries)
+    .to(taskQueries)
+    .inSingletonScope();
+container
+    .bind<IUserCommands>(TYPES.UserCommands)
+    .to(userCommands)
+    .inSingletonScope();
+container
+    .bind<IUserQueries>(TYPES.UserQueries)
+    .to(userQueries)
+    .inSingletonScope();
+container
+    .bind<IAuthService>(TYPES.AuthService)
+    .to(AuthService)
+    .inSingletonScope();
 
 export { container };

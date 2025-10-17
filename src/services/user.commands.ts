@@ -22,17 +22,43 @@ export class userCommands implements IUserCommands {
 
     public async createUser(data: UserCreateData): Promise<CreateUserResponse> {
         const hashedPassword = await bcrypt.hash(data.password, 10);
-        const user = await prisma.user.create({
-            data: {
-                username: data.username,
-                email: data.email,
-                password: hashedPassword,
-            },
-        });
-        const { accessToken, refreshToken } =
-            await this._authService.generateTokens(user);
-        await this._authService.saveRefreshToken(user.id, refreshToken);
+
+        const { user, accessToken, refreshToken } = await prisma.$transaction(
+            async (tx) => {
+                const createdUser = await tx.user.create({
+                    data: {
+                        username: data.username,
+                        email: data.email,
+                        password: hashedPassword,
+                    },
+                });
+
+                await tx.task.create({
+                    data: {
+                        title: 'Welcome to your new Task Manager',
+                        authorId: createdUser.id,
+                    },
+                });
+
+                const tokens = await this._authService.generateTokens(
+                    createdUser
+                );
+                const hashedRefreshToken = await bcrypt.hash(
+                    tokens.refreshToken,
+                    10
+                );
+
+                const updatedUser = await tx.user.update({
+                    where: { id: createdUser.id },
+                    data: { refreshToken: hashedRefreshToken },
+                });
+
+                return { user: updatedUser, ...tokens };
+            }
+        );
+
         const { password, refreshToken: rt, ...userWithoutPassword } = user;
+
         return { user: userWithoutPassword, accessToken, refreshToken };
     }
     public async updateUser(

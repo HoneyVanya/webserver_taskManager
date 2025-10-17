@@ -17,6 +17,7 @@ import swaggetUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
 import { requestTimer } from './middleware/requestTimer.js';
+import { correlationId } from './middleware/correlationId.js';
 
 const server = new InversifyExpressServer(container);
 
@@ -29,6 +30,7 @@ server.setConfig((app) => {
             version: process.env.GIT_COMMIT_SHA || 'unknown',
         });
     });
+    app.use(correlationId);
     app.use(pinoHttp({ logger }));
     app.use(passport.initialize());
     const corsOptions = {
