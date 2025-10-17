@@ -37,13 +37,14 @@ describe('Task API Endpoints', () => {
         expect(res.statusCode).toBe(401);
     });
 
-    it('should fetch an empty array of tasks for a new user', async () => {
+    it('should fetch the default "Welcome" task for a new user', async () => {
         const res = await request(app)
             .get('/tasks')
             .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
-        expect(res.body).toEqual([]);
+        expect(res.body).toHaveLength(1);
+        expect(res.body[0].title).toContain('Welcome');
     });
 
     it('should create a new task', async () => {
@@ -64,7 +65,10 @@ describe('Task API Endpoints', () => {
             .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
-        expect(res.body).toHaveLength(1);
-        expect(res.body[0].title).toBe('My first test task');
+        expect(res.body).toHaveLength(2);
+        const testTask = res.body.find(
+            (task: any) => task.title === 'My first test task'
+        );
+        expect(testTask).toBeDefined();
     });
 });
